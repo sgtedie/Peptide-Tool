@@ -701,22 +701,16 @@ select {
 ════════════════════════════════════════════════ -->
 <div id="calc" class="section active">
 
+  <!-- Mode toggle -->
+  <div style="display:flex; gap:8px; margin-bottom:12px;">
+    <button id="mode-calc" onclick="setCalcMode('calc')" class="btn btn-primary" style="flex:1; padding:11px;">🧮 Dose Calculator</button>
+    <button id="mode-decoder" onclick="setCalcMode('decoder')" class="btn btn-secondary" style="flex:1; padding:11px;">🔍 Dose Decoder</button>
+  </div>
+
+  <!-- STANDARD CALCULATOR -->
+  <div id="calc-mode">
   <div class="card">
     <div class="card-title">Peptide Info</div>
-
-    <div class="field-wrap">
-      <label>Peptide</label>
-      <select id="c-peptide" onchange="onCalcPeptideChange()">
-        <option value="">— Select Peptide —</option>
-      </select>
-    </div>
-
-    <div id="c-custom-wrap" style="display:none">
-      <div class="field-wrap">
-        <label>Custom Peptide Name</label>
-        <input type="text" id="c-custom-name" placeholder="Enter peptide name" oninput="calcUpdate()">
-      </div>
-    </div>
 
     <div class="field-row" style="margin-bottom:13px">
       <div class="field-wrap">
@@ -788,6 +782,71 @@ select {
     <div class="empty-icon">🧪</div>
     <div>Fill in your peptide info above<br>to calculate your dose</div>
   </div>
+  </div><!-- end calc-mode -->
+
+  <!-- DOSE DECODER -->
+  <div id="decoder-mode" style="display:none">
+    <div class="card">
+      <div class="card-title">Dose Decoder</div>
+      <div class="info-note" style="margin-bottom:14px;">Know your units — find out your exact dose in mg and mcg.</div>
+
+      <div class="field-row" style="margin-bottom:13px">
+        <div class="field-wrap">
+          <label>Vial Size (mg)</label>
+          <input type="number" id="d-vial" placeholder="e.g. 5" inputmode="decimal" oninput="decodeUpdate()">
+        </div>
+        <div class="field-wrap">
+          <label>BAC Water (ml)</label>
+          <input type="number" id="d-bac" placeholder="e.g. 2" inputmode="decimal" oninput="decodeUpdate()">
+        </div>
+      </div>
+
+      <div class="field-wrap">
+        <label>Units Drawn on Syringe</label>
+        <input type="number" id="d-units" placeholder="e.g. 10" inputmode="decimal" oninput="decodeUpdate()">
+      </div>
+    </div>
+
+    <div id="d-results" style="display:none">
+      <div class="units-hero">
+        <div class="hero-label">Your Dose</div>
+        <div style="display:flex; justify-content:center; align-items:baseline; gap:16px; flex-wrap:wrap;">
+          <div>
+            <div class="hero-number" id="d-mg" style="font-size:48px">—</div>
+            <div class="hero-unit">mg</div>
+          </div>
+          <div style="color:var(--text2); font-size:28px; font-weight:300; align-self:center;">/</div>
+          <div>
+            <div class="hero-number" id="d-mcg" style="font-size:48px; color:var(--teal)">—</div>
+            <div class="hero-unit">mcg</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="result-label">Concentration</div>
+          <div class="result-value" id="d-conc">—</div>
+          <div class="result-unit-sm">mg / ml</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">Volume Drawn</div>
+          <div class="result-value" id="d-vol">—</div>
+          <div class="result-unit-sm">ml</div>
+        </div>
+      </div>
+
+      <div class="calc-summary" id="d-summary"></div>
+      <div style="text-align:center; margin-top:10px;">
+        <button class="btn-clear" onclick="clearDecoder()">Clear / Reset</button>
+      </div>
+    </div>
+
+    <div id="d-empty" class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <div>Enter your vial info and units drawn<br>to decode your dose</div>
+    </div>
+  </div><!-- end decoder-mode -->
 
 </div>
 
@@ -1141,6 +1200,60 @@ function switchTab(id, el) {
 // ─────────────────────────────────────────────────────────
 // CALCULATOR
 // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// CALC MODE TOGGLE
+// ─────────────────────────────────────────────────────────
+function setCalcMode(mode) {
+  const isCalc = mode === 'calc';
+  document.getElementById('calc-mode').style.display    = isCalc ? 'block' : 'none';
+  document.getElementById('decoder-mode').style.display = isCalc ? 'none'  : 'block';
+  document.getElementById('mode-calc').className    = isCalc ? 'btn btn-primary'   : 'btn btn-secondary';
+  document.getElementById('mode-decoder').className = isCalc ? 'btn btn-secondary' : 'btn btn-primary';
+}
+
+// ─────────────────────────────────────────────────────────
+// DOSE DECODER
+// ─────────────────────────────────────────────────────────
+function decodeUpdate() {
+  const vial  = parseFloat(document.getElementById('d-vial').value);
+  const bac   = parseFloat(document.getElementById('d-bac').value);
+  const units = parseFloat(document.getElementById('d-units').value);
+
+  const resEl   = document.getElementById('d-results');
+  const emptyEl = document.getElementById('d-empty');
+
+  if (!vial || !bac || !units || vial <= 0 || bac <= 0 || units <= 0) {
+    resEl.style.display = 'none';
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  const conc   = vial / bac;          // mg/ml
+  const volMl  = units / 100;         // ml
+  const doseMg = volMl * conc;        // mg
+  const doseMcg = doseMg * 1000;      // mcg
+
+  const fmt = (n, d=2) => +n.toFixed(d) === Math.round(n) ? Math.round(n) : n.toFixed(d);
+
+  document.getElementById('d-mg').textContent   = fmt(doseMg, 4).toString().replace(/\.?0+$/, '') || '0';
+  document.getElementById('d-mcg').textContent  = fmt(doseMcg, 2);
+  document.getElementById('d-conc').textContent = fmt(conc, 2);
+  document.getElementById('d-vol').textContent  = fmt(volMl, 3);
+
+  document.getElementById('d-summary').innerHTML =
+    `Drawing <strong>${units} units</strong> from a <strong>${vial}mg</strong> vial in <strong>${bac}ml</strong> BAC water gives you ` +
+    `<strong>${fmt(doseMg,4).toString().replace(/\.?0+$/,'')}mg</strong> (<strong>${fmt(doseMcg,2)}mcg</strong>) per injection.`;
+
+  resEl.style.display = 'block';
+  emptyEl.style.display = 'none';
+}
+
+function clearDecoder() {
+  ['d-vial','d-bac','d-units'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('d-results').style.display = 'none';
+  document.getElementById('d-empty').style.display = 'block';
+}
+
 function setModalDoseUnit(unit) {
   modalDoseUnit = unit;
   document.getElementById('m-unit-mg').style.background  = unit === 'mg'  ? 'var(--accent)' : 'none';
@@ -1221,17 +1334,12 @@ function calcUpdate() {
     costItem.style.display = 'none';
   }
 
-  const pepName = document.getElementById('c-peptide').value === 'Custom / Other'
-    ? (document.getElementById('c-custom-name').value || 'your peptide')
-    : (document.getElementById('c-peptide').value || 'your peptide');
-
   const doseDisplay = doseUnit === 'mcg'
     ? `<strong>${doseRaw}mcg (${dose}mg)</strong>`
     : `<strong>${dose}mg</strong>`;
 
   document.getElementById('c-summary').innerHTML =
-    `Draw <strong>${fmt(units,1)} units</strong> on a U-100 insulin syringe for a ` +
-    `${doseDisplay} dose of <strong>${pepName}</strong>. ` +
+    `Draw <strong>${fmt(units,1)} units</strong> on a U-100 insulin syringe for a ${doseDisplay} dose. ` +
     `Your ${vial}mg vial in ${bac}ml BAC water = <strong>${fmt(conc,2)} mg/ml</strong>. ` +
     `This vial gives you <strong>${fmt(shotsPerVial,1)} injections</strong>.` +
     (costPerDose !== null ? ` Cost per dose: <strong>$${costPerDose.toFixed(2)}</strong>.` : '');
@@ -1241,13 +1349,8 @@ function calcUpdate() {
 }
 
 function clearCalc() {
-  ['c-peptide','c-vial','c-price','c-bac','c-dose','c-custom-name']
-    .forEach(id => {
-      const el = document.getElementById(id);
-      if (el.tagName === 'SELECT') el.value = '';
-      else el.value = '';
-    });
-  document.getElementById('c-custom-wrap').style.display = 'none';
+  ['c-vial','c-price','c-bac','c-dose']
+    .forEach(id => document.getElementById(id).value = '');
   document.getElementById('c-results').style.display = 'none';
   document.getElementById('c-empty').style.display = 'block';
 }
