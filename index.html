@@ -702,9 +702,10 @@ select {
 <div id="calc" class="section active">
 
   <!-- Mode toggle -->
-  <div style="display:flex; gap:8px; margin-bottom:12px;">
-    <button id="mode-calc" onclick="setCalcMode('calc')" class="btn btn-primary" style="flex:1; padding:11px;">🧮 Dose Calculator</button>
-    <button id="mode-decoder" onclick="setCalcMode('decoder')" class="btn btn-secondary" style="flex:1; padding:11px;">🔍 Dose Decoder</button>
+  <div style="display:flex; gap:6px; margin-bottom:12px;">
+    <button id="mode-calc" onclick="setCalcMode('calc')" class="btn btn-primary" style="flex:1; padding:10px; font-size:12px;">🧮 Dose Calculator</button>
+    <button id="mode-decoder" onclick="setCalcMode('decoder')" class="btn btn-secondary" style="flex:1; padding:10px; font-size:12px;">🔍 Dose Decoder</button>
+    <button id="mode-recon" onclick="setCalcMode('recon')" class="btn btn-secondary" style="flex:1; padding:10px; font-size:12px;">⚗️ Reconstitution</button>
   </div>
 
   <!-- STANDARD CALCULATOR -->
@@ -847,6 +848,53 @@ select {
       <div>Enter your vial info and units drawn<br>to decode your dose</div>
     </div>
   </div><!-- end decoder-mode -->
+
+  <!-- RECONSTITUTION CALCULATOR -->
+  <div id="recon-mode" style="display:none">
+    <div class="card">
+      <div class="card-title">Reconstitution Calculator</div>
+      <div class="info-note" style="margin-bottom:14px;">Enter your vial and dose — see units to draw for 1–5ml of BAC water.</div>
+
+      <div class="field-wrap">
+        <label>Vial Size (mg)</label>
+        <input type="number" id="r-vial" placeholder="e.g. 5" inputmode="decimal" oninput="reconUpdate()">
+      </div>
+
+      <div class="field-wrap">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+          <label style="margin-bottom:0">Desired Dose</label>
+          <div style="display:flex; background:var(--surface2); border:1.5px solid var(--border); border-radius:20px; overflow:hidden;">
+            <button id="r-unit-mg" onclick="setReconUnit('mg')" style="padding:3px 10px; font-size:11px; font-weight:700; background:var(--accent); color:white; border:none; cursor:pointer;">mg</button>
+            <button id="r-unit-mcg" onclick="setReconUnit('mcg')" style="padding:3px 10px; font-size:11px; font-weight:700; background:none; color:var(--text2); border:none; cursor:pointer;">mcg</button>
+          </div>
+        </div>
+        <input type="number" id="r-dose" placeholder="e.g. 0.25" inputmode="decimal" oninput="reconUpdate()">
+      </div>
+    </div>
+
+    <div id="r-results" style="display:none">
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead>
+            <tr style="background:var(--surface2);">
+              <th style="padding:11px 14px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text2); border-bottom:1px solid var(--border);">BAC Water</th>
+              <th style="padding:11px 14px; text-align:center; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text2); border-bottom:1px solid var(--border);">Concentration</th>
+              <th style="padding:11px 14px; text-align:right; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text2); border-bottom:1px solid var(--border);">Units to Draw</th>
+            </tr>
+          </thead>
+          <tbody id="r-table-body"></tbody>
+        </table>
+      </div>
+      <div style="text-align:center; margin-top:4px;">
+        <button class="btn-clear" onclick="clearRecon()">Clear / Reset</button>
+      </div>
+    </div>
+
+    <div id="r-empty" class="empty-state">
+      <div class="empty-icon">⚗️</div>
+      <div>Enter your vial size and dose<br>to compare BAC water amounts</div>
+    </div>
+  </div><!-- end recon-mode -->
 
 </div>
 
@@ -1177,7 +1225,6 @@ let viewPeriod = 30;
     return html;
   };
 
-  document.getElementById('c-peptide').innerHTML = buildOpts('— Select Peptide —');
   document.getElementById('m-peptide').innerHTML = buildOpts('— Select —');
 
   // Default date = today
@@ -1204,11 +1251,71 @@ function switchTab(id, el) {
 // CALC MODE TOGGLE
 // ─────────────────────────────────────────────────────────
 function setCalcMode(mode) {
-  const isCalc = mode === 'calc';
-  document.getElementById('calc-mode').style.display    = isCalc ? 'block' : 'none';
-  document.getElementById('decoder-mode').style.display = isCalc ? 'none'  : 'block';
-  document.getElementById('mode-calc').className    = isCalc ? 'btn btn-primary'   : 'btn btn-secondary';
-  document.getElementById('mode-decoder').className = isCalc ? 'btn btn-secondary' : 'btn btn-primary';
+  ['calc-mode','decoder-mode','recon-mode'].forEach(id =>
+    document.getElementById(id).style.display = 'none'
+  );
+  document.getElementById(mode + '-mode').style.display = 'block';
+  ['mode-calc','mode-decoder','mode-recon'].forEach(id =>
+    document.getElementById(id).className = 'btn btn-secondary'
+  );
+  document.getElementById('mode-' + (mode === 'calc' ? 'calc' : mode === 'decoder' ? 'decoder' : 'recon')).className = 'btn btn-primary';
+}
+
+// ─────────────────────────────────────────────────────────
+// RECONSTITUTION CALCULATOR
+// ─────────────────────────────────────────────────────────
+let reconUnit = 'mg';
+
+function setReconUnit(unit) {
+  reconUnit = unit;
+  document.getElementById('r-unit-mg').style.background  = unit === 'mg'  ? 'var(--accent)' : 'none';
+  document.getElementById('r-unit-mg').style.color       = unit === 'mg'  ? 'white' : 'var(--text2)';
+  document.getElementById('r-unit-mcg').style.background = unit === 'mcg' ? 'var(--accent)' : 'none';
+  document.getElementById('r-unit-mcg').style.color      = unit === 'mcg' ? 'white' : 'var(--text2)';
+  document.getElementById('r-dose').placeholder = unit === 'mg' ? 'e.g. 0.25' : 'e.g. 250';
+  document.getElementById('r-dose').value = '';
+  document.getElementById('r-results').style.display = 'none';
+  document.getElementById('r-empty').style.display = 'block';
+}
+
+function reconUpdate() {
+  const vial    = parseFloat(document.getElementById('r-vial').value);
+  const doseRaw = parseFloat(document.getElementById('r-dose').value);
+  const dose    = reconUnit === 'mcg' ? doseRaw / 1000 : doseRaw;
+
+  const resEl   = document.getElementById('r-results');
+  const emptyEl = document.getElementById('r-empty');
+
+  if (!vial || !dose || vial <= 0 || dose <= 0) {
+    resEl.style.display = 'none';
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  const fmt = (n, d=2) => +n.toFixed(d) === Math.round(n) ? Math.round(n) : n.toFixed(d);
+  const tbody = document.getElementById('r-table-body');
+
+  tbody.innerHTML = [1, 2, 3, 4, 5].map(ml => {
+    const conc  = vial / ml;           // mg/ml
+    const units = (dose / conc) * 100; // U-100 units
+    const isNice = Number.isInteger(Math.round(units * 10) / 10) || units % 5 === 0;
+    const highlight = units >= 5 && units <= 50;
+
+    return `<tr style="border-bottom:1px solid var(--border); ${highlight ? 'background:rgba(16,185,129,0.04)' : ''}">
+      <td style="padding:12px 14px; font-weight:700; color:var(--text);">${ml} ml</td>
+      <td style="padding:12px 14px; text-align:center; color:var(--text2);">${fmt(conc,2)} mg/ml</td>
+      <td style="padding:12px 14px; text-align:right; font-weight:800; font-size:16px; color:${highlight ? 'var(--accent)' : 'var(--text2)'};">${fmt(units,1)} <span style="font-size:11px; font-weight:600;">units</span></td>
+    </tr>`;
+  }).join('');
+
+  resEl.style.display = 'block';
+  emptyEl.style.display = 'none';
+}
+
+function clearRecon() {
+  ['r-vial','r-dose'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('r-results').style.display = 'none';
+  document.getElementById('r-empty').style.display = 'block';
 }
 
 // ─────────────────────────────────────────────────────────
