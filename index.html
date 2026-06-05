@@ -1066,10 +1066,17 @@ select {
   </div>
 
   <div class="card">
-    <div class="card-title">Peptide Reference</div>
-    <div class="field-wrap">
-      <label>Select a Peptide</label>
-      <select id="ref-peptide" onchange="showPeptideInfo()">
+    <div class="card-title">Symptom / Goal Search</div>
+    <div class="field-wrap" style="margin-bottom:8px;">
+      <input type="text" id="ref-search" placeholder="e.g. muscle ache, sleep, fat loss, anxiety..." oninput="refSearch()" autocomplete="off" style="margin-bottom:0;">
+    </div>
+    <div id="ref-search-results" style="display:none; flex-wrap:wrap; gap:7px; margin-top:10px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Browse by Name</div>
+    <div class="field-wrap" style="margin-bottom:0">
+      <select id="ref-peptide" onchange="onRefDropdown()">
         <option value="">— Choose a Peptide —</option>
       </select>
     </div>
@@ -1077,7 +1084,7 @@ select {
 
   <div id="ref-empty" class="empty-state">
     <div class="empty-icon">📖</div>
-    <div>Select a peptide above to view<br>research notes and dosing info</div>
+    <div>Search a symptom or select a peptide<br>to view research notes and dosing info</div>
   </div>
 
   <div id="ref-card" style="display:none"></div>
@@ -2189,6 +2196,147 @@ const PEPTIDE_INFO = {
 // ─────────────────────────────────────────────────────────
 // PEPTIDE REFERENCE FUNCTIONS
 // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// SYMPTOM KEYWORD MAP
+// ─────────────────────────────────────────────────────────
+const SYMPTOM_KEYWORDS = {
+  // Pain & Recovery
+  'headache': ['pain','neuropathic','migraine','inflammation'],
+  'muscle ache': ['muscle','tissue repair','recovery','injury','healing'],
+  'muscle pain': ['muscle','tissue repair','recovery','injury'],
+  'joint pain': ['joint','arthritis','inflammation','anti-inflammatory'],
+  'tendon': ['tendon','ligament','tissue repair','flexibility'],
+  'injury': ['injury','tissue repair','healing','recovery','repair'],
+  'pain': ['pain','neuropathic','anti-inflammatory','inflammation'],
+  'inflammation': ['inflammation','anti-inflammatory','inflammatory'],
+  'wound': ['wound','healing','tissue repair'],
+  'recovery': ['recovery','tissue repair','injury','healing','repair'],
+  'neuropathy': ['neuropathic','nerve','pain','small fiber'],
+  // Gut & Immune
+  'gut': ['gut','gi','gastrointestinal','ibd','colitis','intestinal'],
+  'stomach': ['gut','gi','gastrointestinal','stomach','intestinal'],
+  'ibd': ['ibd','colitis','crohn','gut','gastrointestinal'],
+  'immune': ['immune','immunity','antiviral','antifungal','infection'],
+  'infection': ['infection','antimicrobial','antiviral','immune','biofilm'],
+  'mold': ['cirs','mold','vip','inflammatory response'],
+  // Weight & Metabolism
+  'fat loss': ['fat loss','weight loss','lipolytic','metabolic','body composition'],
+  'weight loss': ['weight loss','fat loss','appetite','metabolic','obesity'],
+  'belly fat': ['visceral fat','belly','fat loss','metabolic'],
+  'appetite': ['appetite','hunger','satiety','weight loss'],
+  'metabolism': ['metabolic','metabolism','insulin','body composition'],
+  'diabetes': ['insulin','blood sugar','glycemic','glucose'],
+  'blood sugar': ['blood sugar','insulin','glycemic','glucose'],
+  'insulin': ['insulin','sensitivity','blood sugar','metabolic'],
+  // Brain & Cognitive
+  'focus': ['cognitive','focus','concentration','nootropic','memory'],
+  'memory': ['memory','cognitive','learning','nootropic'],
+  'brain': ['cognitive','neuroprotection','brain','neurological'],
+  'cognitive': ['cognitive','memory','focus','nootropic','neurological'],
+  'adhd': ['focus','cognitive','dopamine','concentration'],
+  'brain fog': ['cognitive','brain','focus','clarity','neurological'],
+  'nootropic': ['cognitive','nootropic','memory','focus','neuroprotection'],
+  // Mood & Mental Health
+  'anxiety': ['anxiety','stress','anxiolytic','mood'],
+  'stress': ['stress','cortisol','anxiety','adaptogen'],
+  'depression': ['depression','antidepressant','mood','bdnf'],
+  'mood': ['mood','depression','anxiety','antidepressant','dopamine'],
+  'sleep': ['sleep','circadian','rest','dsip','delta sleep'],
+  'insomnia': ['sleep','insomnia','circadian','rest','dsip'],
+  // Anti-Aging & Longevity
+  'anti-aging': ['anti-aging','longevity','aging','telomere','senescent'],
+  'longevity': ['longevity','anti-aging','lifespan','cellular'],
+  'aging': ['anti-aging','longevity','aging','telomere'],
+  'energy': ['energy','mitochondrial','nad','fatigue','atp'],
+  'fatigue': ['fatigue','energy','mitochondrial','nad','tiredness'],
+  'telomere': ['telomere','anti-aging','longevity','epigenetic'],
+  // Skin, Hair & Beauty
+  'skin': ['skin','collagen','wound','dermal','rejuvenation'],
+  'wrinkles': ['skin','collagen','rejuvenation','anti-aging'],
+  'hair': ['hair','follicle','regrowth','hair growth'],
+  'hair loss': ['hair','follicle','regrowth','hair growth'],
+  'collagen': ['collagen','skin','connective tissue','synthesis'],
+  // Growth Hormone
+  'hgh': ['gh','growth hormone','ghrh','ghrp','pituitary'],
+  'growth hormone': ['growth hormone','gh','ghrh','ghrp','pituitary'],
+  'muscle growth': ['muscle growth','anabolic','body composition','gh','igf'],
+  'body composition': ['body composition','muscle growth','fat loss','gh'],
+  // Reproductive & Hormonal
+  'libido': ['libido','sexual','arousal','desire'],
+  'sex drive': ['libido','sexual','arousal','desire'],
+  'erectile': ['erectile','sexual dysfunction','ed'],
+  'testosterone': ['testosterone','lh','luteinizing','trt'],
+  'fertility': ['fertility','reproductive','sperm','fsh','lh'],
+  'hormones': ['hormonal','testosterone','lh','fsh','reproductive'],
+  'tanning': ['tanning','melanin','pigmentation','uv'],
+  // Cardiovascular
+  'heart': ['heart','cardiac','cardiovascular'],
+  'cardiac': ['cardiac','heart','cardiovascular'],
+};
+
+function refSearch() {
+  const query = document.getElementById('ref-search').value.trim().toLowerCase();
+  const resultsEl = document.getElementById('ref-search-results');
+
+  if (query.length < 2) {
+    resultsEl.style.display = 'none';
+    resultsEl.innerHTML = '';
+    return;
+  }
+
+  // Build keyword list from query
+  let keywords = [query];
+  // Check symptom map for alias expansion
+  for (const [symptom, aliases] of Object.entries(SYMPTOM_KEYWORDS)) {
+    if (symptom.includes(query) || query.includes(symptom)) {
+      keywords = keywords.concat(aliases);
+    }
+  }
+  keywords = [...new Set(keywords)];
+
+  // Score each peptide
+  const scores = {};
+  for (const [name, info] of Object.entries(PEPTIDE_INFO)) {
+    const searchText = [name.toLowerCase(), ...info.uses.map(u => u.toLowerCase()), info.notes.toLowerCase()].join(' ');
+    let score = 0;
+    for (const kw of keywords) {
+      if (searchText.includes(kw)) score++;
+    }
+    if (name.toLowerCase().includes(query)) score += 3;
+    if (score > 0) scores[name] = score;
+  }
+
+  const matches = Object.entries(scores).sort((a,b) => b[1]-a[1]).map(e => e[0]);
+
+  if (matches.length === 0) {
+    resultsEl.style.display = 'flex';
+    resultsEl.innerHTML = `<div style="font-size:13px; color:var(--text2);">No matches found — try a different term.</div>`;
+    return;
+  }
+
+  resultsEl.style.display = 'flex';
+  resultsEl.innerHTML = matches.map(name =>
+    `<button onclick="loadRefPeptide('${name.replace(/'/g,"\\'")}'); document.getElementById('ref-search').value=''; document.getElementById('ref-search-results').style.display='none';"
+      style="background:var(--accent-dim); border:1px solid rgba(16,185,129,0.3); color:var(--accent); font-size:12px; font-weight:700; padding:6px 13px; border-radius:20px; cursor:pointer; white-space:nowrap;">
+      ${name}
+    </button>`
+  ).join('');
+}
+
+function onRefDropdown() {
+  const name = document.getElementById('ref-peptide').value;
+  if (name) loadRefPeptide(name);
+}
+
+function loadRefPeptide(name) {
+  // Sync dropdown
+  const sel = document.getElementById('ref-peptide');
+  for (let i = 0; i < sel.options.length; i++) {
+    if (sel.options[i].value === name) { sel.selectedIndex = i; break; }
+  }
+  showPeptideInfo(name);
+}
+
 function formatDose(s) {
   const f = n => {
     const v = parseFloat(n);
@@ -2218,8 +2366,8 @@ function formatDose(s) {
   return s.replace(/~MCG~/g, 'mcg').replace(/~MG~/g, 'mg');
 }
 
-function showPeptideInfo() {
-  const name = document.getElementById('ref-peptide').value;
+function showPeptideInfo(nameOverride) {
+  const name = nameOverride || document.getElementById('ref-peptide').value;
   const cardEl  = document.getElementById('ref-card');
   const emptyEl = document.getElementById('ref-empty');
 
