@@ -735,7 +735,13 @@ select {
         <input type="number" id="c-bac" placeholder="e.g. 2" inputmode="decimal" oninput="calcUpdate()">
       </div>
       <div class="field-wrap">
-        <label>Desired Dose (mg)</label>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+          <label style="margin-bottom:0">Desired Dose</label>
+          <div style="display:flex; background:var(--surface2); border:1.5px solid var(--border); border-radius:20px; overflow:hidden;">
+            <button id="unit-mg" onclick="setDoseUnit('mg')" style="padding:3px 10px; font-size:11px; font-weight:700; background:var(--accent); color:white; border:none; cursor:pointer;">mg</button>
+            <button id="unit-mcg" onclick="setDoseUnit('mcg')" style="padding:3px 10px; font-size:11px; font-weight:700; background:none; color:var(--text2); border:none; cursor:pointer;">mcg</button>
+          </div>
+        </div>
         <input type="number" id="c-dose" placeholder="e.g. 0.25" inputmode="decimal" oninput="calcUpdate()">
       </div>
     </div>
@@ -846,7 +852,13 @@ select {
 
     <!-- Dose + Vial info -->
     <div class="field-wrap">
-      <label>Dose per Injection (mg)</label>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <label style="margin-bottom:0">Dose per Injection</label>
+        <div style="display:flex; background:var(--surface2); border:1.5px solid var(--border); border-radius:20px; overflow:hidden;">
+          <button id="m-unit-mg" onclick="setModalDoseUnit('mg')" style="padding:3px 10px; font-size:11px; font-weight:700; background:var(--accent); color:white; border:none; cursor:pointer;">mg</button>
+          <button id="m-unit-mcg" onclick="setModalDoseUnit('mcg')" style="padding:3px 10px; font-size:11px; font-weight:700; background:none; color:var(--text2); border:none; cursor:pointer;">mcg</button>
+        </div>
+      </div>
       <input type="number" id="m-dose" placeholder="e.g. 0.25" inputmode="decimal" oninput="updateModalUnits()">
     </div>
 
@@ -1086,6 +1098,8 @@ function findPeptide(name) {
 // STATE
 // ─────────────────────────────────────────────────────────
 let peptides = [];   // scheduler peptide list
+let doseUnit = 'mg';       // calculator
+let modalDoseUnit = 'mg';  // scheduler modal
 let viewPeriod = 30;
 
 // ─────────────────────────────────────────────────────────
@@ -1127,6 +1141,31 @@ function switchTab(id, el) {
 // ─────────────────────────────────────────────────────────
 // CALCULATOR
 // ─────────────────────────────────────────────────────────
+function setModalDoseUnit(unit) {
+  modalDoseUnit = unit;
+  document.getElementById('m-unit-mg').style.background  = unit === 'mg'  ? 'var(--accent)' : 'none';
+  document.getElementById('m-unit-mg').style.color       = unit === 'mg'  ? 'white' : 'var(--text2)';
+  document.getElementById('m-unit-mcg').style.background = unit === 'mcg' ? 'var(--accent)' : 'none';
+  document.getElementById('m-unit-mcg').style.color      = unit === 'mcg' ? 'white' : 'var(--text2)';
+  const input = document.getElementById('m-dose');
+  input.placeholder = unit === 'mg' ? 'e.g. 0.25' : 'e.g. 250';
+  input.value = '';
+  document.getElementById('m-units-preview').style.display = 'none';
+}
+
+function setDoseUnit(unit) {
+  doseUnit = unit;
+  document.getElementById('unit-mg').style.background  = unit === 'mg'  ? 'var(--accent)' : 'none';
+  document.getElementById('unit-mg').style.color       = unit === 'mg'  ? 'white' : 'var(--text2)';
+  document.getElementById('unit-mcg').style.background = unit === 'mcg' ? 'var(--accent)' : 'none';
+  document.getElementById('unit-mcg').style.color      = unit === 'mcg' ? 'white' : 'var(--text2)';
+  const input = document.getElementById('c-dose');
+  input.placeholder = unit === 'mg' ? 'e.g. 0.25' : 'e.g. 250';
+  input.value = '';
+  document.getElementById('c-results').style.display = 'none';
+  document.getElementById('c-empty').style.display = 'block';
+}
+
 function onCalcPeptideChange() {
   const sel = document.getElementById('c-peptide').value;
   const isCustom = sel === 'Custom / Other';
@@ -1142,10 +1181,11 @@ function onCalcPeptideChange() {
 }
 
 function calcUpdate() {
-  const vial  = parseFloat(document.getElementById('c-vial').value);
-  const bac   = parseFloat(document.getElementById('c-bac').value);
-  const dose  = parseFloat(document.getElementById('c-dose').value);
-  const price = parseFloat(document.getElementById('c-price').value);
+  const vial     = parseFloat(document.getElementById('c-vial').value);
+  const bac      = parseFloat(document.getElementById('c-bac').value);
+  const doseRaw  = parseFloat(document.getElementById('c-dose').value);
+  const dose     = doseUnit === 'mcg' ? doseRaw / 1000 : doseRaw;  // always work in mg
+  const price    = parseFloat(document.getElementById('c-price').value);
 
   const resEl   = document.getElementById('c-results');
   const emptyEl = document.getElementById('c-empty');
@@ -1185,9 +1225,13 @@ function calcUpdate() {
     ? (document.getElementById('c-custom-name').value || 'your peptide')
     : (document.getElementById('c-peptide').value || 'your peptide');
 
+  const doseDisplay = doseUnit === 'mcg'
+    ? `<strong>${doseRaw}mcg (${dose}mg)</strong>`
+    : `<strong>${dose}mg</strong>`;
+
   document.getElementById('c-summary').innerHTML =
     `Draw <strong>${fmt(units,1)} units</strong> on a U-100 insulin syringe for a ` +
-    `<strong>${dose}mg</strong> dose of <strong>${pepName}</strong>. ` +
+    `${doseDisplay} dose of <strong>${pepName}</strong>. ` +
     `Your ${vial}mg vial in ${bac}ml BAC water = <strong>${fmt(conc,2)} mg/ml</strong>. ` +
     `This vial gives you <strong>${fmt(shotsPerVial,1)} injections</strong>.` +
     (costPerDose !== null ? ` Cost per dose: <strong>$${costPerDose.toFixed(2)}</strong>.` : '');
@@ -1212,7 +1256,8 @@ function clearCalc() {
 // SCHEDULER MODAL HELPERS
 // ─────────────────────────────────────────────────────────
 function updateModalUnits() {
-  const dose = parseFloat(document.getElementById('m-dose').value);
+  const doseRaw = parseFloat(document.getElementById('m-dose').value);
+  const dose = modalDoseUnit === 'mcg' ? doseRaw / 1000 : doseRaw;
   const vial = parseFloat(document.getElementById('m-vial').value);
   const bac  = parseFloat(document.getElementById('m-bac').value);
   const preview = document.getElementById('m-units-preview');
@@ -1233,6 +1278,7 @@ function openModal() {
   document.getElementById('m-vial').value = '';
   document.getElementById('m-bac').value = '';
   document.getElementById('m-units-preview').style.display = 'none';
+  setModalDoseUnit('mg');
   document.getElementById('m-custom-wrap').style.display = 'none';
   document.getElementById('m-custom-name').value = '';
   document.getElementById('custom-cycle-wrap').style.display = 'none';
@@ -1304,7 +1350,8 @@ function addPeptide() {
   const selVal = document.getElementById('m-peptide').value;
   const customName = document.getElementById('m-custom-name').value.trim();
   const name = selVal === 'Custom / Other' ? customName : selVal;
-  const dose = parseFloat(document.getElementById('m-dose').value);
+  const doseRaw = parseFloat(document.getElementById('m-dose').value);
+  const dose = modalDoseUnit === 'mcg' ? doseRaw / 1000 : doseRaw;
 
   if (!name)          { showToast('⚠️ Please select a peptide'); return; }
   if (!dose || dose <= 0) { showToast('⚠️ Please enter a valid dose'); return; }
@@ -1376,7 +1423,7 @@ function renderPeptideList() {
         <button class="btn btn-danger" onclick="removePeptide(${p.id})">Remove</button>
       </div>
       <div class="peptide-item-badges">
-        <span class="badge badge-purple">${p.dose}mg${p.units !== null ? ` · ${fmtU(p.units)} units` : ''}</span>
+        <span class="badge badge-purple">${p.dose < 1 ? (p.dose * 1000) + 'mcg' : p.dose + 'mg'}${p.units !== null ? ` · ${fmtU(p.units)} units` : ''}</span>
         <span class="badge badge-teal">${TIMING_LABEL[p.timing]}</span>
         <span class="badge badge-yellow">${cycleLabel(p.cycle)}</span>
       </div>
