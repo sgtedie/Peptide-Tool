@@ -1099,6 +1099,17 @@ select {
     </div>
   </div>
 
+  <!-- Q&A Box -->
+  <div class="card">
+    <div class="card-title">Research Q&A</div>
+    <div class="info-note" style="margin-bottom:12px;">Ask a question about any peptide — dosing, timing, side effects, stacking, and more.</div>
+    <div style="display:flex; gap:8px;">
+      <input type="text" id="qa-input" placeholder="e.g. What are the side effects of BPC-157?" style="margin-bottom:0; flex:1;" onkeydown="if(event.key==='Enter') answerQuestion()">
+      <button class="btn btn-primary" style="width:auto; padding:11px 18px; flex-shrink:0;" onclick="answerQuestion()">Ask</button>
+    </div>
+    <div id="qa-answer" style="display:none; margin-top:14px; background:var(--surface2); border-radius:var(--radius-sm); border:1px solid var(--border); padding:14px; font-size:13px; line-height:1.7;"></div>
+  </div>
+
   <div id="ref-empty" class="empty-state">
     <div class="empty-icon">📖</div>
     <div>Search a symptom or select a peptide<br>to view research notes and dosing info</div>
@@ -2113,379 +2124,379 @@ function escHtml(s) {
 const PEPTIDE_INFO = {
   "BPC-157": {
     uses: ["GI tract healing and gut repair", "Tendon, ligament, and muscle injury recovery", "Joint inflammation and arthritis", "Wound and bone healing", "Neurological protection and mood support"],
-    dose: "200–500mcg/day", timing: "AM or split AM/PM", cycle: "4–8 weeks on, 2–4 weeks off",
+    dose: "200–500mcg/day", timing: "AM or split AM/PM", cycle: "Daily for 4–8 weeks · 2–4 week break · For acute injury: continue daily until healed, then break",
     stacks: ["TB-500", "KPV", "LL-37"],
     notes: "Can be dosed subcutaneously near the injury site for localized effect. Argentinian peptide with the most human anecdotal data."
   },
   "BPC-157 Acetate": {
     uses: ["Same benefits as BPC-157", "More water-soluble form — easier to reconstitute", "GI healing, tendon repair, anti-inflammatory"],
-    dose: "200–500mcg/day", timing: "AM or PM", cycle: "4–8 weeks",
+    dose: "200–500mcg/day", timing: "AM or PM", cycle: "Daily for 4–8 weeks · 2–4 week break · Same protocol as standard BPC-157",
     stacks: ["TB-500", "KPV"],
     notes: "Acetate salt form. Functionally equivalent to BPC-157 arginine salt with improved solubility."
   },
   "TB-500 (Thymosin Beta-4)": {
     uses: ["Systemic tissue repair and injury recovery", "Improved flexibility and range of motion", "Hair growth stimulation", "Cardiac tissue repair", "Anti-inflammatory"],
-    dose: "2.5–5mg 2x/week (loading 4–6 weeks), then 2–2.5mg/week maintenance", timing: "Any time", cycle: "Loading phase then maintenance",
+    dose: "2.5–5mg 2x/week (loading 4–6 weeks), then 2–2.5mg/week maintenance", timing: "Any time", cycle: "Loading: 2x/week for 4–6 weeks · Maintenance: once/week ongoing · 3 months on / 1 month off",
     stacks: ["BPC-157"],
     notes: "Works systemically — doesn't need to be injected near the injury. Best stacked with BPC-157 for comprehensive recovery."
   },
   "TB-500 Fragment 1-4": {
     uses: ["Actin binding and tissue repair", "Anti-inflammatory effects", "Injury recovery"],
-    dose: "2–5mg 2–3x/week", timing: "Any time", cycle: "4–6 weeks",
+    dose: "2–5mg 2–3x/week", timing: "Any time", cycle: "4–6 weeks on · 2–4 weeks off · Repeat as needed",
     stacks: ["BPC-157", "TB-500 Fragment 17-23"],
     notes: "N-terminal fragment of Thymosin Beta-4. Targets the actin-binding portion of the full peptide."
   },
   "TB-500 Fragment 17-23": {
     uses: ["Wound healing", "Hair follicle stimulation and regrowth", "Cardiac repair"],
-    dose: "2–5mg 2–3x/week", timing: "Any time", cycle: "4–6 weeks",
+    dose: "2–5mg 2–3x/week", timing: "Any time", cycle: "4–6 weeks on · 2–4 weeks off · Repeat as needed",
     stacks: ["BPC-157", "TB-500 Fragment 1-4"],
     notes: "C-terminal fragment. Associated more with hair growth and wound healing than the 1-4 fragment."
   },
   "BPC-157 + TB-500 Blend": {
     uses: ["Comprehensive tissue repair — combines both peptides", "Accelerated injury recovery", "Anti-inflammatory, gut healing, flexibility"],
-    dose: "250–500mcg BPC / 2.5mg TB per injection", timing: "AM or PM", cycle: "4–8 weeks",
+    dose: "250–500mcg BPC / 2.5mg TB per injection", timing: "AM or PM", cycle: "Daily for 4–8 weeks · 2–4 week break · For active injuries: continue until resolved",
     stacks: ["KPV", "LL-37"],
     notes: "Convenient pre-blended option. Ideal starting point for most recovery protocols."
   },
   "LL-37": {
     uses: ["Antimicrobial and antiviral immune support", "Wound healing and tissue repair", "Anti-biofilm (chronic infections)", "Immune modulation"],
-    dose: "100–200mcg/day", timing: "Any time", cycle: "4–6 weeks",
+    dose: "100–200mcg/day", timing: "Any time", cycle: "4–6 weeks on · 2 weeks off · Repeat as needed for chronic infections",
     stacks: ["BPC-157", "KPV", "Thymosin Alpha-1"],
     notes: "Naturally occurring human cathelicidin. Particularly useful for chronic infections and biofilm-related conditions."
   },
   "KPV": {
     uses: ["Gut healing — IBD, Crohn's, colitis", "Skin inflammation and wound healing", "Anti-inflammatory (potent)", "Immune modulation"],
-    dose: "100–500mcg/day", timing: "Any time", cycle: "4–8 weeks",
+    dose: "100–500mcg/day", timing: "Any time", cycle: "For gut/IBD: continuous use acceptable long-term · General inflammation: 4–8 weeks on / 2 weeks off",
     stacks: ["BPC-157", "LL-37"],
     notes: "Tripeptide derived from alpha-MSH. Very well tolerated. Can be taken orally or subcutaneously."
   },
   "ARA-290": {
     uses: ["Neuropathic pain relief", "Insulin sensitivity and metabolic health", "Anti-inflammatory", "Tissue repair and wound healing"],
-    dose: "4–8mg 3x/week", timing: "Any time", cycle: "4–6 weeks",
+    dose: "4–8mg 3x/week", timing: "Any time", cycle: "3x/week for 4–6 weeks · 4 weeks off · Repeat as needed",
     stacks: ["BPC-157"],
     notes: "ERB (erythropoietin receptor binding) peptide. Particularly researched for small fiber neuropathy."
   },
   "CJC-1295 (no DAC)": {
     uses: ["GH pulse stimulation — mimics natural GH release", "Muscle growth and body composition", "Fat loss", "Anti-aging and recovery"],
-    dose: "100–300mcg per injection, 2–3x/day", timing: "Fasted AM and/or before bed", cycle: "3–6 months",
+    dose: "100–300mcg per injection, 2–3x/day", timing: "Fasted AM and/or before bed", cycle: "5 days on / 2 days off · 3–6 months total · Then 4–8 weeks off before repeating",
     stacks: ["Ipamorelin"],
     notes: "Short half-life (~30 min). Best combined with a GHRP like Ipamorelin for synergistic GH release. Always dose fasted."
   },
   "CJC-1295 (with DAC)": {
     uses: ["Sustained GH elevation throughout the week", "Muscle growth, fat loss, anti-aging"],
-    dose: "1–2mg once or twice per week", timing: "Any time (long half-life ~8 days)", cycle: "3–6 months",
+    dose: "1–2mg once or twice per week", timing: "Any time (long half-life ~8 days)", cycle: "Weekly dosing for 3–6 months · 6–8 weeks off · No 5 on/2 off needed due to long half-life",
     stacks: ["GHRP-2", "GHRP-6", "Ipamorelin"],
     notes: "Drug Affinity Complex extends half-life dramatically. Less 'pulse-like' than no-DAC version. Controversial — some prefer natural GH pulse mimicry."
   },
   "CJC-1295 + Ipamorelin Blend": {
     uses: ["GH stimulation — GHRH + GHRP synergy", "Improved body composition", "Better sleep quality", "Recovery and anti-aging"],
-    dose: "100–300mcg 2–3x/day", timing: "Before bed (most important dose) and fasted AM", cycle: "3–6 months",
+    dose: "100–300mcg 2–3x/day", timing: "Before bed (most important dose) and fasted AM", cycle: "5 days on / 2 days off · 3–6 months total · 4–8 weeks off · Most popular GH peptide protocol",
     stacks: [],
     notes: "The most popular GH stack. The GHRH + GHRP combination produces a strong synergistic GH pulse. Always dose fasted."
   },
   "Ipamorelin": {
     uses: ["GH release stimulation", "Improved body composition and fat loss", "Better sleep quality", "Anti-aging effects"],
-    dose: "100–300mcg 2–3x/day", timing: "Before bed and/or fasted AM", cycle: "3–6 months",
+    dose: "100–300mcg 2–3x/day", timing: "Before bed and/or fasted AM", cycle: "5 days on / 2 days off · 3–6 months total · 4–8 weeks off · Pairs best with CJC-1295",
     stacks: ["CJC-1295 (no DAC)", "Sermorelin"],
     notes: "Selective GH secretagogue — one of the cleanest GHRPs with minimal cortisol or prolactin increase."
   },
   "Sermorelin": {
     uses: ["GH stimulation — natural GHRH analog", "Anti-aging", "Improved sleep quality", "Body composition"],
-    dose: "200–500mcg before bed", timing: "PM — 30 min before sleep", cycle: "3–6 months continuous",
+    dose: "200–500mcg before bed", timing: "PM — 30 min before sleep", cycle: "Daily or 5 on/2 off · 3–6 months · 6–8 weeks off · Many use continuously long-term at maintenance dose",
     stacks: ["Ipamorelin"],
     notes: "FDA-approved GHRH analog. One of the most studied and well-established GH peptides. Stimulates pituitary to produce own GH."
   },
   "Tesamorelin": {
     uses: ["Visceral (belly) fat reduction", "GH stimulation", "Cognitive function and memory", "HIV-associated lipodystrophy (FDA approved for this)"],
-    dose: "1–2mg/day", timing: "PM, fasted", cycle: "6–12 months",
+    dose: "1–2mg/day", timing: "PM, fasted", cycle: "5 days on / 2 days off · 6–12 months total · This is the standard recommended protocol · 4–8 weeks off between long cycles",
     stacks: ["Ipamorelin"],
     notes: "FDA-approved for HIV lipodystrophy. Strong evidence for visceral fat reduction. Also shows cognitive benefits in research."
   },
   "GHRP-2": {
     uses: ["Strong GH release", "Appetite stimulation", "Muscle growth and recovery", "Anti-inflammatory"],
-    dose: "100–300mcg 2–3x/day", timing: "Fasted — before meals or bed", cycle: "3–6 months",
+    dose: "100–300mcg 2–3x/day", timing: "Fasted — before meals or bed", cycle: "5 days on / 2 days off · 3 months on · 4–6 weeks off · Monitor cortisol on long cycles",
     stacks: ["CJC-1295 (with DAC)", "CJC-1295 (no DAC)"],
     notes: "More potent GH release than Ipamorelin but also increases cortisol and prolactin. Significant appetite stimulation."
   },
   "GHRP-6": {
     uses: ["Strong GH release", "Very strong appetite stimulation", "Muscle growth", "GI motility support"],
-    dose: "100–300mcg 2–3x/day", timing: "Before meals (leverages appetite stimulation)", cycle: "3–6 months",
+    dose: "100–300mcg 2–3x/day", timing: "Before meals (leverages appetite stimulation)", cycle: "5 days on / 2 days off · 3 months on · 4–6 weeks off · Monitor cortisol on long cycles",
     stacks: ["CJC-1295 (no DAC)", "CJC-1295 (with DAC)"],
     notes: "Strongest appetite stimulation of all GHRPs. Good for those who need to eat more. Also increases cortisol and prolactin."
   },
   "Hexarelin": {
     uses: ["Very potent GH release", "Cardiac protection and repair", "Muscle growth"],
-    dose: "100–200mcg 2–3x/day", timing: "Fasted", cycle: "8–12 weeks (desensitization occurs)",
+    dose: "100–200mcg 2–3x/day", timing: "Fasted", cycle: "Maximum 8–12 weeks · Mandatory 4+ week break (desensitization occurs rapidly) · Do NOT use continuously",
     stacks: ["CJC-1295 (no DAC)"],
     notes: "Strongest GHRP for GH release. Also has direct cardiac receptor activity. Desensitization occurs faster than other GHRPs — cycle carefully."
   },
   "IGF-1 LR3": {
     uses: ["Muscle cell growth and hyperplasia", "Fat loss and body composition", "Tissue repair", "Enhanced nutrient uptake"],
-    dose: "20–100mcg/day", timing: "Post-workout or AM fasted", cycle: "4–6 weeks MAXIMUM — then 4+ weeks off",
+    dose: "20–100mcg/day", timing: "Post-workout or AM fasted", cycle: "Strict 4–6 weeks ON · Minimum 4 weeks OFF — non-negotiable · Never use continuously · Cancer history = contraindicated",
     stacks: [],
     notes: "Highly anabolic. Causes muscle cell hyperplasia (new cells) not just hypertrophy. Risk of desensitization — strict cycling required."
   },
   "Semaglutide (GLP-1S)": {
     uses: ["Weight loss and appetite suppression", "Blood sugar regulation", "Cardiovascular risk reduction", "Metabolic health"],
-    dose: "0.25mg/week starting, escalate to 0.5–2.4mg/week", timing: "Once weekly, same day each week", cycle: "Ongoing — slow dose escalation over months",
+    dose: "0.25mg/week starting, escalate to 0.5–2.4mg/week", timing: "Once weekly, same day each week", cycle: "Start 0.25mg/week · Increase by 0.25mg every 4 weeks · Ongoing at therapeutic dose · No defined off-cycle",
     stacks: ["Cagrilintide (GLP-1C)"],
     notes: "GLP-1 receptor agonist. FDA-approved as Ozempic/Wegovy. Slow escalation critical to minimize GI side effects."
   },
   "Tirzepatide (GLP-1T)": {
     uses: ["Weight loss — stronger than semaglutide", "Blood sugar control", "Dual GIP + GLP-1 receptor agonism"],
-    dose: "2.5mg/week starting, escalate to 5–15mg/week", timing: "Once weekly", cycle: "Ongoing — escalate every 4 weeks",
+    dose: "2.5mg/week starting, escalate to 5–15mg/week", timing: "Once weekly", cycle: "Start 2.5mg/week · Increase by 2.5mg every 4 weeks · Ongoing at therapeutic dose · GI side effects guide escalation pace",
     stacks: [],
     notes: "FDA-approved as Mounjaro/Zepbound. Generally produces greater weight loss than semaglutide alone due to dual mechanism."
   },
   "Retatrutide (RETA)": {
     uses: ["Weight loss — triple agonist (GLP-1 + GIP + Glucagon)", "Metabolic health", "Potentially strongest weight loss peptide in research"],
-    dose: "2mg/week starting, escalate to 4–12mg/week", timing: "Once weekly", cycle: "Ongoing — slow escalation",
+    dose: "2mg/week starting, escalate to 4–12mg/week", timing: "Once weekly", cycle: "Start 2mg/week · Slow escalation every 4 weeks · Ongoing — still in Phase 3 trials, follow emerging protocols",
     stacks: [],
     notes: "Triple receptor agonist currently in Phase 3 trials. Early data shows superior weight loss to semaglutide and tirzepatide. Not FDA approved."
   },
   "Cagrilintide (GLP-1C)": {
     uses: ["Weight loss — amylin analog", "Appetite suppression through different mechanism than GLP-1s", "Blood sugar regulation"],
-    dose: "0.16–2.4mg/week", timing: "Once weekly", cycle: "Ongoing",
+    dose: "0.16–2.4mg/week", timing: "Once weekly", cycle: "Escalate weekly dose over months · Ongoing — mirrors semaglutide escalation schedule when combined",
     stacks: ["Semaglutide (GLP-1S)"],
     notes: "Amylin receptor agonist. Synergistic with semaglutide (combined as CagriSema in trials). Different satiety mechanism than GLP-1."
   },
   "GLP-3": {
     uses: ["Weight loss and appetite suppression", "Gut hormone modulation", "GI tract health"],
-    dose: "5–10mg/week", timing: "Once weekly", cycle: "Ongoing",
+    dose: "5–10mg/week", timing: "Once weekly", cycle: "Weekly dosing · Ongoing — emerging protocol, limited long-term data",
     stacks: ["Semaglutide (GLP-1S)"],
     notes: "Emerging metabolic peptide. Research is ongoing — less clinical data than GLP-1 agonists."
   },
   "GLP-1C + GLP-1S Blend": {
     uses: ["Enhanced weight loss via dual mechanism", "Appetite suppression from two pathways", "Blood sugar regulation"],
-    dose: "Per individual component dosing", timing: "Once weekly", cycle: "Ongoing",
+    dose: "Per individual component dosing", timing: "Once weekly", cycle: "Follow GLP-1 escalation schedule for each component · Ongoing — mirrors CagriSema clinical trial protocol",
     stacks: [],
     notes: "Mirrors the CagriSema combination studied in clinical trials. Both peptides target complementary satiety pathways."
   },
   "AOD 9604": {
     uses: ["Targeted fat loss — lipolytic", "Metabolic enhancement", "Cartilage and joint repair", "No effect on blood sugar or growth"],
-    dose: "300–500mcg/day", timing: "AM fasted", cycle: "3–6 months",
+    dose: "300–500mcg/day", timing: "AM fasted", cycle: "Daily or 5 days on / 2 days off · 3–6 months · 1–2 months off · Can stack with GH peptides for body composition",
     stacks: ["CJC-1295 (no DAC)", "Ipamorelin"],
     notes: "Fragment of HGH (176-191). Only the fat-burning portion — does not raise IGF-1 or cause GH side effects."
   },
   "MOTS-C": {
     uses: ["Metabolic regulation and insulin sensitivity", "Exercise mimetic — activates AMPK pathway", "Longevity and mitochondrial health", "Weight management"],
-    dose: "5–10mg 2–3x/week", timing: "AM or before exercise", cycle: "8–12 weeks",
+    dose: "5–10mg 2–3x/week", timing: "AM or before exercise", cycle: "2–3x/week for 8–12 weeks · 4–6 weeks off · Repeat 2–3 times/year",
     stacks: ["NAD+", "SS-31 (Elamipretide)"],
     notes: "Mitochondria-derived peptide. Encoded in mitochondrial DNA — unique among peptides. Declines with age."
   },
   "5-Amino-1MQ": {
     uses: ["Fat loss via NNMT inhibition", "NAD+ pathway enhancement", "Metabolic health and energy"],
-    dose: "50–250mg/day (oral capsule)", timing: "AM", cycle: "8–12 weeks",
+    dose: "50–250mg/day (oral capsule)", timing: "AM", cycle: "8–12 weeks on · 4–6 weeks off · Best combined with NAD+ precursors for synergistic metabolic effect",
     stacks: ["MOTS-C", "NAD+"],
     notes: "Small molecule NNMT inhibitor. Oral bioavailability makes it unique. Works synergistically with NAD+ precursors."
   },
   "Epithalon": {
     uses: ["Telomere lengthening and cellular anti-aging", "Improved sleep quality", "Immune system regulation", "Pineal gland support and melatonin regulation"],
-    dose: "5–10mg/day", timing: "PM", cycle: "10–20 days, 2–3x per year",
+    dose: "5–10mg/day", timing: "PM", cycle: "10–20 consecutive daily injections · Then 4–6 months off · Repeat 2–3 times/year · Do NOT use daily long-term",
     stacks: ["NAD+", "GHK-Cu (Copper Peptide)"],
     notes: "Tetrapeptide from the pineal gland. Used in short intensive courses rather than daily long-term use. Extensive Russian research base."
   },
   "GHK-Cu (Copper Peptide)": {
     uses: ["Skin rejuvenation and collagen synthesis", "Hair follicle stimulation and regrowth", "Wound healing", "Anti-inflammatory", "Lung and liver tissue repair"],
-    dose: "50–200mg/week subcutaneous", timing: "Any time", cycle: "8–12 weeks",
+    dose: "50–200mg/week subcutaneous", timing: "Any time", cycle: "8–12 weeks on · 4 weeks off · Can be used long-term with periodic breaks · Also effective topically for skin/hair",
     stacks: ["Epithalon", "BPC-157"],
     notes: "Naturally occurring in human plasma — declines with age. Can also be applied topically for skin/hair. One of the most studied longevity peptides."
   },
   "NAD+": {
     uses: ["Cellular energy production", "DNA repair", "Mitochondrial function", "Cognitive clarity", "Anti-aging and longevity"],
-    dose: "100–500mg subcutaneous", timing: "AM", cycle: "Can be used continuously or in courses",
+    dose: "100–500mg subcutaneous", timing: "AM", cycle: "2–3x/week continuously or monthly 4-day loading course · No strict off-cycle required · Levels normalize between doses",
     stacks: ["MOTS-C", "SS-31 (Elamipretide)", "5-Amino-1MQ"],
     notes: "Declines significantly with age. IV administration provides the strongest effect but SQ is more practical. May cause flushing at higher doses."
   },
   "Thymosin Alpha-1 (TA1)": {
     uses: ["Immune system modulation and enhancement", "Antiviral and antifungal activity", "Cancer adjunct therapy", "Lyme disease and chronic infections", "Vaccine response enhancement"],
-    dose: "1.6–3.2mg 2x/week", timing: "Any time", cycle: "4–12 weeks",
+    dose: "1.6–3.2mg 2x/week", timing: "Any time", cycle: "2x/week for 4–12 weeks depending on indication · Acute illness: 4–6 weeks · Chronic immune support: 12 weeks on / 4 weeks off",
     stacks: ["LL-37", "KPV"],
     notes: "FDA-approved in some countries for hepatitis and cancer. Strong evidence base. Well tolerated. Natural thymic hormone."
   },
   "FOXO4-DRI": {
     uses: ["Senolytic — eliminates senescent (zombie) cells", "Anti-aging at cellular level", "Potential cancer cell apoptosis"],
-    dose: "1–5mg 3x/week", timing: "AM", cycle: "2–3 week course only, then long break",
+    dose: "1–5mg 3x/week", timing: "AM", cycle: "3 injections over 7 days (Day 1, Day 3, Day 7) · Then minimum 3–6 months off · Experimental — do not use continuously",
     stacks: ["NAD+"],
     notes: "Experimental senolytic. Short intensive cycles only. Not for continuous use. Research mostly in animal models. Handle with care."
   },
   "Humanin": {
     uses: ["Mitochondrial protection", "Neuroprotection and cognitive health", "Anti-apoptotic (cell survival)", "Metabolic regulation", "Declines with age"],
-    dose: "2–4mg 2–3x/week", timing: "Any time", cycle: "8–12 weeks",
+    dose: "2–4mg 2–3x/week", timing: "Any time", cycle: "2–3x/week for 8–12 weeks · 4–6 weeks off · Repeat 2x/year",
     stacks: ["MOTS-C", "SS-31 (Elamipretide)"],
     notes: "Mitochondria-derived peptide like MOTS-C. Part of the 'mitochondrial peptidome.' Particularly researched for Alzheimer's and neurodegeneration."
   },
   "MOTS-C / Humanin Blend": {
     uses: ["Combined mitochondrial support", "Metabolic regulation and cellular protection", "Anti-aging via dual mitochondrial mechanisms"],
-    dose: "5mg each, 2–3x/week", timing: "AM", cycle: "8–12 weeks",
+    dose: "5mg each, 2–3x/week", timing: "AM", cycle: "2–3x/week for 8–12 weeks · 4–6 weeks off · Repeat quarterly",
     stacks: ["NAD+"],
     notes: "Both are mitochondria-derived peptides that work complementarily. Convenient combination for mitochondrial health protocols."
   },
   "SS-31 (Elamipretide)": {
     uses: ["Mitochondrial membrane stabilization", "Cardiac protection and heart failure research", "Kidney protection", "Age-related mitochondrial decline", "Energy production"],
-    dose: "10–50mg/day or 2–3x/week", timing: "AM", cycle: "8–12 weeks",
+    dose: "10–50mg/day or 2–3x/week", timing: "AM", cycle: "Daily or 3x/week for 8–12 weeks · 4 weeks off · Repeat quarterly · Strong cardiac/renal research protocol",
     stacks: ["MOTS-C", "NAD+", "Humanin"],
     notes: "Tetrapeptide that targets cardiolipin in mitochondrial membranes. Strong cardiac and renal research base. In Phase 2/3 trials for heart failure."
   },
   "Thymulin": {
     uses: ["Thymic immune function support", "Anti-inflammatory", "Pain modulation", "Immune regulation"],
-    dose: "5–10mg 2–3x/week", timing: "Any time", cycle: "4–8 weeks",
+    dose: "5–10mg 2–3x/week", timing: "Any time", cycle: "2–3x/week for 4–8 weeks · 4 weeks off · Repeat as needed · Often used in 10-day courses like other bioregulators",
     stacks: ["Thymosin Alpha-1 (TA1)"],
     notes: "Natural thymic hormone that declines with age. Works synergistically with TA1 for immune support."
   },
   "Semax": {
     uses: ["Cognitive enhancement and focus", "Neuroprotection and BDNF increase", "Anxiety and stress reduction", "Stroke recovery", "Depression adjunct"],
-    dose: "200–600mcg/day (intranasal or SQ)", timing: "AM", cycle: "1–3 months",
+    dose: "200–600mcg/day (intranasal or SQ)", timing: "AM", cycle: "Russian protocol: 10 days on / 10 days off · Western: 1–3 months on / 4 weeks off · Often cycled with Selank",
     stacks: ["Selank"],
     notes: "Synthetic analog of ACTH(4-7). Widely used in Russia clinically. Intranasal spray is the most common delivery. Often cycled with Selank."
   },
   "N-Acetyl Semax": {
     uses: ["Enhanced Semax analog", "Cognitive function and memory", "Neuroprotection", "BDNF stimulation"],
-    dose: "200–600mcg/day", timing: "AM", cycle: "1–3 months",
+    dose: "200–600mcg/day", timing: "AM", cycle: "10 days on / 10 days off · Or 1–3 months on / 4 weeks off · More potent than standard Semax — may need shorter cycles",
     stacks: ["N-Acetyl Selank"],
     notes: "N-acetylation increases stability and potency compared to standard Semax. Longer duration of action."
   },
   "Adamax (N-Acetyl Semax Amidate)": {
     uses: ["Strongest Semax analog available", "Cognitive enhancement and mental clarity", "Focus and motivation", "Mood elevation", "Neuroprotection"],
-    dose: "100–300mcg/day", timing: "AM", cycle: "1–2 months",
+    dose: "100–300mcg/day", timing: "AM", cycle: "1–2 months on · 3–4 weeks off · Lower doses needed — more potent than standard Semax · 10 on/10 off also works well",
     stacks: ["Adalank (N-Acetyl Selank Amidate)"],
     notes: "Both N-acetylated and amidated for maximum potency and stability. Lower doses needed compared to standard Semax. Developed by Limitless Biotech."
   },
   "Selank": {
     uses: ["Anxiety and stress reduction", "Cognitive enhancement", "Mood stabilization", "Immune modulation", "Anti-depressant effects"],
-    dose: "200–500mcg/day", timing: "AM or PM (as needed for anxiety)", cycle: "1–3 months",
+    dose: "200–500mcg/day", timing: "AM or PM (as needed for anxiety)", cycle: "Russian protocol: 10 days on / 10 days off · Western: 1–3 months on / 4 weeks off · No dependency — can stop anytime",
     stacks: ["Semax"],
     notes: "Heptapeptide analog of tuftsin. No dependency or withdrawal. Well studied in Russia. Often combined with Semax for cognitive + anxiolytic effect."
   },
   "N-Acetyl Selank": {
     uses: ["Enhanced Selank — anxiety, cognitive function", "Mood stabilization", "Immune support"],
-    dose: "200–500mcg/day", timing: "AM or PM", cycle: "1–3 months",
+    dose: "200–500mcg/day", timing: "AM or PM", cycle: "10 days on / 10 days off · Or 1–3 months on / 4 weeks off · No dependency — very forgiving cycle protocol",
     stacks: ["N-Acetyl Semax"],
     notes: "More stable and potent than standard Selank due to N-acetylation."
   },
   "Adalank (N-Acetyl Selank Amidate)": {
     uses: ["Strongest Selank analog", "Anxiety relief and mood stabilization", "Cognitive support", "Stress resilience"],
-    dose: "100–300mcg/day", timing: "AM or PM", cycle: "1–2 months",
+    dose: "100–300mcg/day", timing: "AM or PM", cycle: "10 days on / 10 days off · Or 1–2 months on / 3–4 weeks off · No withdrawal — pairs well with Adamax",
     stacks: ["Adamax (N-Acetyl Semax Amidate)"],
     notes: "Maximally modified Selank for highest potency. Best paired with Adamax for a complete nootropic + anxiolytic stack."
   },
   "DSIP": {
     uses: ["Sleep quality improvement — reduces time to sleep onset", "Stress and cortisol regulation", "Pain modulation", "Normalized sleep architecture"],
-    dose: "100–500mcg 30–60 min before bed", timing: "PM only", cycle: "2–4 weeks on, break",
+    dose: "100–500mcg 30–60 min before bed", timing: "PM only", cycle: "2–4 weeks on · 1–2 weeks off · Use as needed for sleep issues — not for daily indefinite use",
     stacks: ["Epithalon"],
     notes: "Delta Sleep Inducing Peptide. Non-habit forming. Works best when taken consistently. Also helps normalize cortisol patterns."
   },
   "Cortexin": {
     uses: ["Neuroprotection", "Cognitive function and memory", "Stroke and TBI recovery", "Age-related cognitive decline"],
-    dose: "5–10mg/day", timing: "AM", cycle: "10-day courses, 3–4x/year",
+    dose: "5–10mg/day", timing: "AM", cycle: "10 consecutive daily injections · 3–4 month break · Repeat 3–4x/year — intensive short course model only",
     stacks: ["Semax"],
     notes: "Polypeptide extract from bovine cortex. FDA approved in Russia and Eastern Europe for neurological conditions. Used in short intensive courses."
   },
   "MIF-1": {
     uses: ["Dopamine regulation and mood support", "Anti-depressant effects", "Cognitive enhancement", "Potentiates other nootropics"],
-    dose: "1–5mg/day", timing: "AM", cycle: "4–8 weeks",
+    dose: "1–5mg/day", timing: "AM", cycle: "4–8 weeks on · 2–4 weeks off · Short cycles preferred due to limited long-term data",
     stacks: ["Semax", "Selank"],
     notes: "Melanocyte-inhibiting factor. Short tripeptide with dopaminergic activity. Enhances effects of other cognitive peptides."
   },
   "PE-22-28": {
     uses: ["Antidepressant effects", "BDNF enhancement and synaptogenesis", "Synaptic plasticity", "Anxiety reduction"],
-    dose: "1–5mg/day", timing: "AM", cycle: "4–8 weeks",
+    dose: "1–5mg/day", timing: "AM", cycle: "4–8 weeks on · 2–4 weeks off · Fast-acting — some notice effects within days",
     stacks: ["Semax", "Selank"],
     notes: "Spadin analog targeting TREK-1 potassium channels. Fast-acting antidepressant mechanism distinct from SSRIs."
   },
   "Orexin A": {
     uses: ["Wakefulness and alertness", "Narcolepsy research", "Appetite and energy regulation", "Motivation and drive"],
-    dose: "10–100mcg intranasal", timing: "AM only", cycle: "As needed",
+    dose: "10–100mcg intranasal", timing: "AM only", cycle: "As needed for wakefulness · Not for daily continuous use — tolerance develops · 5 days on / 2 days off if using regularly",
     stacks: [],
     notes: "Naturally occurring wakefulness peptide. Deficiency linked to narcolepsy. Intranasal delivery only — not for injection."
   },
   "P-21": {
     uses: ["Neurogenesis — stimulates new neuron growth", "BDNF increase", "Cognitive enhancement and memory", "Long-term neuroprotection"],
-    dose: "5–25mg/day", timing: "AM", cycle: "4–8 weeks",
+    dose: "5–25mg/day", timing: "AM", cycle: "4–8 weeks on · 2–4 weeks off · Neurogenesis takes time — allow 2–3 cycles before assessing results",
     stacks: ["Semax", "PE-22-28"],
     notes: "NAPVSIPQ-based peptide with neurogenic properties. One of few peptides shown to stimulate actual neurogenesis."
   },
   "Noopept": {
     uses: ["Cognitive enhancement and memory consolidation", "Neuroprotection", "Anxiety reduction at low doses", "Increased NGF and BDNF"],
-    dose: "10–30mg/day (oral or intranasal)", timing: "AM", cycle: "1–2 months then break",
+    dose: "10–30mg/day (oral or intranasal)", timing: "AM", cycle: "1–2 months on · 1 month off · Tolerance may develop with continuous use — cycling maintains effectiveness",
     stacks: ["Semax", "Selank"],
     notes: "Not technically a peptide — dipeptide-derived nootropic. One of the most studied nootropics. Oral bioavailability is good."
   },
   "9-Me-BC": {
     uses: ["Dopamine pathway enhancement and regeneration", "Neuroprotection", "Cognitive function and focus", "Parkinson's disease research"],
-    dose: "10–25mg/day (oral)", timing: "AM", cycle: "4–6 weeks maximum, then extended break",
+    dose: "10–25mg/day (oral)", timing: "AM", cycle: "Strict 4–6 weeks maximum · 6–8 weeks off minimum · Avoid sun during and after cycle · Neurotoxicity risk if overused",
     stacks: [],
     notes: "Beta-carboline alkaloid. Promotes dopaminergic neuron growth. Light sensitivity — avoid sun exposure during use. Strict cycling required."
   },
   "VIP (Vasoactive Intestinal Peptide)": {
     uses: ["Chronic inflammatory response syndrome (CIRS/mold illness)", "Pulmonary arterial hypertension", "Anti-inflammatory — gut, lungs, brain", "Immune regulation"],
-    dose: "50mcg intranasal 4x/day", timing: "Distributed throughout day", cycle: "Per protocol — often months",
+    dose: "50mcg intranasal 4x/day", timing: "Distributed throughout day", cycle: "Per Shoemaker CIRS protocol — typically months of continuous use · Lab markers guide duration · Work with a practitioner",
     stacks: ["BPC-157", "KPV"],
     notes: "Critical for CIRS/mold illness protocols (Shoemaker protocol). Must have TGF-beta1 and MMP-9 tested before use. Work with a practitioner."
   },
   "ARA-290": {
     uses: ["Neuropathic pain relief", "Insulin sensitivity", "Anti-inflammatory", "Tissue repair"],
-    dose: "4–8mg 3x/week", timing: "Any time", cycle: "4–6 weeks",
+    dose: "4–8mg 3x/week", timing: "Any time", cycle: "3x/week for 4–6 weeks · 4 weeks off · Repeat as needed for neuropathic pain management",
     stacks: ["BPC-157"],
     notes: "Helix B surface peptide of erythropoietin. All the tissue-protective effects without the blood-thickening of EPO."
   },
   "CardioCytogen": {
     uses: ["Cardiac tissue support and repair", "Heart muscle function", "Post-cardiac event recovery"],
-    dose: "5–20mg/day", timing: "Any time", cycle: "10-day courses",
+    dose: "5–20mg/day", timing: "Any time", cycle: "10 consecutive daily injections · 3 months off · Repeat 3–4x/year — Russian bioregulator short-course model",
     stacks: ["SS-31 (Elamipretide)"],
     notes: "Russian bioregulator peptide derived from cardiac tissue. Used in short 10-day courses repeated quarterly."
   },
   "PT-141 (Bremelanotide)": {
     uses: ["Sexual dysfunction in men and women", "Libido and arousal enhancement", "Erectile dysfunction", "Female sexual arousal disorder"],
-    dose: "0.5–2mg 45–60 min before activity", timing: "As needed — not for daily use", cycle: "No more than 3x/week",
+    dose: "0.5–2mg 45–60 min before activity", timing: "As needed — not for daily use", cycle: "As needed only · Max 3x/week · Allow 48–72 hrs between doses · Not for daily continuous use — receptor downregulation",
     stacks: [],
     notes: "FDA-approved as Vyleesi for female sexual dysfunction. Acts on melanocortin receptors in the brain — central mechanism, not vascular like Viagra."
   },
   "Melanotan II (MT-2)": {
     uses: ["Skin tanning without UV exposure", "Libido enhancement", "Erectile function", "Appetite suppression"],
-    dose: "0.25–1mg/day loading, 0.5mg 2–3x/week maintenance", timing: "PM", cycle: "Loading phase then maintenance",
+    dose: "0.25–1mg/day loading, 0.5mg 2–3x/week maintenance", timing: "PM", cycle: "Loading: daily for 1–2 weeks until desired tan · Maintenance: 2–3x/week ongoing · 8–12 weeks per cycle then break",
     stacks: [],
     notes: "Non-selective melanocortin agonist. Causes tanning, libido boost, and appetite suppression. Nausea common at start — dose at night."
   },
   "Kisspeptin-10": {
     uses: ["LH and FSH stimulation", "Testosterone production support", "Reproductive health and fertility", "Puberty and hormonal regulation research"],
-    dose: "10–100mcg/day", timing: "AM or PM", cycle: "4–8 weeks",
+    dose: "10–100mcg/day", timing: "AM or PM", cycle: "Daily for 4–8 weeks · 2–4 weeks off · Can repeat 3–4x/year for ongoing testosterone support",
     stacks: ["HCG"],
     notes: "Endogenous hypothalamic peptide that triggers GnRH release. Natural alternative to support testosterone axis without suppression."
   },
   "Oxytocin": {
     uses: ["Social bonding and trust enhancement", "Anxiety and stress reduction", "Autism spectrum research", "Post-partum support", "Relationship and intimacy"],
-    dose: "10–40 IU intranasal as needed", timing: "As needed — 30 min before social situations", cycle: "As needed",
+    dose: "10–40 IU intranasal as needed", timing: "As needed — 30 min before social situations", cycle: "As needed only · Not for daily use · Tolerance develops with frequent use · 2–3x/week maximum if using regularly",
     stacks: [],
     notes: "The 'bonding hormone.' Intranasal delivery only. Effects are situational — works best in social contexts. Not for chronic daily use."
   },
   "HCG": {
     uses: ["Testosterone production maintenance during TRT", "Testicular atrophy prevention", "Fertility support", "LH mimetic"],
-    dose: "250–500 IU 2–3x/week", timing: "Any time", cycle: "Ongoing alongside TRT or in fertility protocols",
+    dose: "250–500 IU 2–3x/week", timing: "Any time", cycle: "TRT support: continuous 2–3x/week with no off-cycle · PCT: 500–1000 IU/day for 2–4 weeks post-cycle · Fertility: per specialist protocol",
     stacks: ["Kisspeptin-10"],
     notes: "Mimics LH at the Leydig cells. Essential for maintaining testicular function on TRT. Also used in post-cycle therapy."
   },
   "HMG": {
     uses: ["Fertility — spermatogenesis support", "FSH and LH stimulation", "Hypogonadotropic hypogonadism"],
-    dose: "75 IU 2–3x/week", timing: "Any time", cycle: "Per fertility protocol",
+    dose: "75 IU 2–3x/week", timing: "Any time", cycle: "3–4 months per fertility protocol · Combined with HCG · Work with a fertility specialist — not for self-directed use",
     stacks: ["HCG"],
     notes: "Contains both FSH and LH activity. Used in fertility protocols when HCG alone is insufficient. Often combined with HCG."
   },
   "Testagen": {
     uses: ["Testosterone and reproductive health support", "Male hormonal balance", "Testicular function"],
-    dose: "5–20mg/day", timing: "AM", cycle: "10-day courses",
+    dose: "5–20mg/day", timing: "AM", cycle: "10 consecutive daily injections · 3 months off · Repeat 3–4x/year — Russian bioregulator short-course model",
     stacks: ["HCG"],
     notes: "Russian bioregulator for male reproductive health. Short course protocol typical."
   },
   "KLOW Blend (BPC/TB500/KPV/GHKCu)": {
     uses: ["Comprehensive recovery and anti-aging blend", "Tissue repair (BPC-157 + TB-500)", "Gut and inflammation support (KPV)", "Skin and collagen health (GHK-Cu)"],
-    dose: "4mg/day (typical)", timing: "AM or PM", cycle: "4–8 weeks",
+    dose: "4mg/day (typical)", timing: "AM or PM", cycle: "Daily or 5 days on / 2 days off · 4–8 weeks on · 2–4 weeks off · For active injury: continue daily until resolved",
     stacks: [],
     notes: "Chameleon Peptides signature blend combining 4 complementary peptides. Good all-in-one starting protocol for recovery and longevity."
   },
   "GLOW Blend": {
     uses: ["Skin rejuvenation and anti-aging", "Collagen synthesis and elasticity", "Hair and nail health", "Wound healing"],
-    dose: "Per product labeling", timing: "PM", cycle: "8–12 weeks",
+    dose: "Per product labeling", timing: "PM", cycle: "8–12 weeks on · 4 weeks off · PM dosing recommended for skin repair during overnight recovery",
     stacks: [],
     notes: "Beauty-focused peptide blend. Exact composition may vary — check COA for full breakdown."
   }
@@ -2571,6 +2582,203 @@ const SYMPTOM_KEYWORDS = {
   'heart': ['heart','cardiac','cardiovascular'],
   'cardiac': ['cardiac','heart','cardiovascular'],
 };
+
+// ─────────────────────────────────────────────────────────
+// SIDE EFFECTS DATA
+// ─────────────────────────────────────────────────────────
+const SIDE_EFFECTS = {
+  "BPC-157":                         ["Generally very well tolerated","Mild nausea at high doses","Injection site discomfort","Rare: dizziness or headache"],
+  "BPC-157 Acetate":                 ["Same profile as BPC-157","Generally well tolerated","Mild injection site reactions"],
+  "TB-500 (Thymosin Beta-4)":        ["Generally well tolerated","Mild injection site reactions","Rare: fatigue or dizziness","Possible allergic reaction (rare)"],
+  "TB-500 Fragment 1-4":             ["Generally well tolerated","Mild injection site reactions","Rare: headache"],
+  "TB-500 Fragment 17-23":           ["Generally well tolerated","Mild injection site reactions","Rare: headache"],
+  "BPC-157 + TB-500 Blend":          ["Generally well tolerated","Mild injection site discomfort","Occasional nausea at high doses"],
+  "LL-37":                           ["Injection site pain and redness","Possible flu-like symptoms","Taste disturbance (intranasal)","Rare: allergic reactions"],
+  "KPV":                             ["Generally very well tolerated","One of the safest peptides","Rare: mild injection site reaction"],
+  "ARA-290":                         ["Generally well tolerated","Mild injection site reactions","Rare: headache or fatigue"],
+  "CJC-1295 (no DAC)":               ["Water retention / puffiness","Flushing and warmth","Headache","Numbness or tingling","Increased hunger","Joint soreness (water retention-related)"],
+  "CJC-1295 (with DAC)":             ["Water retention","Increased hunger","Fatigue / lethargy","Headache","Flushing","Reduced insulin sensitivity at high doses"],
+  "CJC-1295 + Ipamorelin Blend":     ["Mild water retention","Flushing","Mild hunger increase","Headache","Occasional fatigue"],
+  "Ipamorelin":                      ["Very mild profile — among the cleanest GHRPs","Mild water retention","Occasional headache or dizziness","Mild hunger increase"],
+  "Sermorelin":                      ["Injection site pain or redness","Flushing","Headache","Nausea","Dizziness","Rare: difficulty swallowing"],
+  "Tesamorelin":                     ["Injection site reactions (common)","Joint pain","Water retention","Nausea","Headache","Rare: insulin resistance"],
+  "GHRP-2":                          ["Significant hunger increase","Water retention","Cortisol elevation","Prolactin increase","Fatigue","Tingling/numbness"],
+  "GHRP-6":                          ["Very strong appetite stimulation","Water retention","Cortisol and prolactin increase","Fatigue","Nausea at high doses","Tingling"],
+  "Hexarelin":                       ["Cortisol and prolactin elevation","Rapid desensitization with continuous use","Water retention","Fatigue","Reduced libido (prolactin-related)"],
+  "IGF-1 LR3":                       ["Hypoglycemia risk (blood sugar drop)","Joint pain and jaw soreness","Headache","Edema / water retention","Potential cancer cell stimulation risk — do not use if cancer history"],
+  "Semaglutide (GLP-1S)":            ["Nausea (very common, especially at start)","Vomiting","Diarrhea","Constipation","Fatigue","Headache","Rare: pancreatitis, thyroid changes"],
+  "Tirzepatide (GLP-1T)":            ["Nausea (common)","Diarrhea","Vomiting","Decreased appetite","Injection site reactions","Rare: pancreatitis"],
+  "Retatrutide (RETA)":              ["Nausea","Vomiting","Diarrhea","Injection site reactions","Reduced appetite","Still in Phase 3 trials — full profile emerging"],
+  "Cagrilintide (GLP-1C)":           ["Nausea","Injection site reactions","Diarrhea","Decreased appetite"],
+  "GLP-3":                           ["Limited data — emerging compound","Possible GI effects","Injection site reactions"],
+  "GLP-1C + GLP-1S Blend":           ["Nausea (common)","GI effects","Injection site reactions","Fatigue"],
+  "AOD 9604":                        ["Generally well tolerated","Mild injection site reactions","Rare: headache","Monitor blood sugar if diabetic"],
+  "MOTS-C":                          ["Generally well tolerated","Mild injection site reactions","Possible transient fatigue","Rare: headache"],
+  "5-Amino-1MQ":                     ["Generally well tolerated (oral)","Rare: GI upset","Limited long-term data available"],
+  "Epithalon":                       ["Generally very well tolerated","Mild fatigue during course","Rare: headache","Unusual dreams reported by some users"],
+  "GHK-Cu (Copper Peptide)":         ["Generally very well tolerated","Topical: rare skin irritation","Injectable: mild injection site reactions","One of the safest peptides available"],
+  "NAD+":                            ["Flushing (warmth, redness) — very common","Nausea","Headache","Fatigue (transient)","IV: discomfort if infused too fast"],
+  "Thymosin Alpha-1 (TA1)":          ["Generally well tolerated","Mild injection site reactions","Rare: fatigue or headache","Mild flu-like symptoms (immune activation sign)"],
+  "FOXO4-DRI":                       ["Experimental — limited human safety data","Fatigue","Injection site reactions","Possible inflammatory response","Strict cycling required — not for daily use"],
+  "Humanin":                         ["Generally well tolerated","Limited long-term human data","Mild injection site reactions"],
+  "MOTS-C / Humanin Blend":          ["Generally well tolerated","Mild injection site reactions","Limited long-term data"],
+  "SS-31 (Elamipretide)":            ["Generally well tolerated in trials","Injection site reactions","Rare: nausea","Limited long-term human data"],
+  "Thymulin":                        ["Generally well tolerated","Mild injection site reactions","Rare: fatigue"],
+  "Semax":                           ["Generally well tolerated","Mild anxiety or irritability at high doses","Headache","Nasal irritation (intranasal)","Rare: insomnia"],
+  "N-Acetyl Semax":                  ["Similar to Semax","Generally well tolerated","Possible mild stimulation/anxiety at high doses","Nasal irritation"],
+  "Adamax (N-Acetyl Semax Amidate)": ["Generally well tolerated","Mild overstimulation at high doses","Possible headache","Anxiety at excessive doses"],
+  "Selank":                          ["Generally very well tolerated","Mild sedation","Rare: headache","Nasal irritation (intranasal)","No withdrawal or dependency reported"],
+  "N-Acetyl Selank":                 ["Generally well tolerated","Mild sedation","Nasal irritation"],
+  "Adalank (N-Acetyl Selank Amidate)":["Generally well tolerated","Mild sedation possible","Rare: headache"],
+  "DSIP":                            ["Drowsiness (expected — take before bed only)","Mild headache","Rare: nausea","Not for daytime use"],
+  "Cortexin":                        ["Generally well tolerated","Mild injection site reactions","Rare: allergic reaction","Short courses only"],
+  "MIF-1":                           ["Generally well tolerated","Rare: mild headache or dizziness"],
+  "PE-22-28":                        ["Generally well tolerated","Limited human data","Rare: mild headache"],
+  "Orexin A":                        ["Generally well tolerated (intranasal)","Possible headache","Overstimulation/anxiety at high doses","Nasal irritation"],
+  "P-21":                            ["Generally well tolerated","Limited human data","Rare: mild headache"],
+  "Noopept":                         ["Mild headache (common)","Irritability at high doses","Paradoxical brain fog","Fatigue","Generally well tolerated at standard doses"],
+  "9-Me-BC":                         ["Photosensitivity — avoid direct sun exposure during use","Headache","Irritability","Potential neurotoxicity at high doses","Strict cycling required — limited human safety data"],
+  "VIP (Vasoactive Intestinal Peptide)":["Flushing","Nasal irritation (intranasal)","Headache","Dizziness","Transient blood pressure changes"],
+  "ARA-290":                         ["Generally well tolerated","Mild injection site reactions","Rare: headache or fatigue"],
+  "CardioCytogen":                   ["Generally well tolerated","Mild injection site reactions","Limited data — short courses only"],
+  "PT-141 (Bremelanotide)":          ["Nausea (common)","Facial flushing","Headache","Transient blood pressure increase","Injection site reactions","Spontaneous erections (men)"],
+  "Melanotan II (MT-2)":             ["Nausea (common at start — dose at night)","Facial flushing","Fatigue","Spontaneous erections (men)","Darkening of moles and skin lesions","Yawning","Appetite suppression"],
+  "Kisspeptin-10":                   ["Generally well tolerated","Mild injection site reactions","Rare: headache"],
+  "Oxytocin":                        ["Nasal irritation (intranasal)","Headache","Nausea","Uterine contractions (caution in women)","Possible emotional sensitivity"],
+  "HCG":                             ["Injection site reactions","Gynecomastia risk (estrogen conversion)","Headache","Mood changes","Fluid retention","Ovarian hyperstimulation syndrome (women)"],
+  "HMG":                             ["Injection site reactions","Ovarian hyperstimulation syndrome (women)","Multiple pregnancy risk (fertility use)","Headache"],
+  "Testagen":                        ["Generally well tolerated","Mild injection site reactions"],
+  "KLOW Blend (BPC/TB500/KPV/GHKCu)":["Generally well tolerated","Mild injection site reactions","Occasional nausea (BPC-157 component)"],
+  "GLOW Blend":                      ["Generally well tolerated","Mild injection site reactions"]
+};
+
+// ─────────────────────────────────────────────────────────
+// RESEARCH Q&A ENGINE
+// ─────────────────────────────────────────────────────────
+function answerQuestion() {
+  const raw = document.getElementById('qa-input').value.trim();
+  if (!raw) return;
+  const q = raw.toLowerCase();
+  const answerEl = document.getElementById('qa-answer');
+
+  // Find peptide mentioned
+  let found = null;
+  for (const name of Object.keys(PEPTIDE_INFO)) {
+    if (q.includes(name.toLowerCase())) { found = name; break; }
+  }
+  // Also try short names
+  if (!found) {
+    const shorts = {
+      'bpc': 'BPC-157', 'tb-500': 'TB-500 (Thymosin Beta-4)', 'tb500': 'TB-500 (Thymosin Beta-4)',
+      'cjc': 'CJC-1295 (no DAC)', 'ipa': 'Ipamorelin', 'sema': 'Semaglutide (GLP-1S)',
+      'tirz': 'Tirzepatide (GLP-1T)', 'reta': 'Retatrutide (RETA)', 'ghk': 'GHK-Cu (Copper Peptide)',
+      'ta1': 'Thymosin Alpha-1 (TA1)', 'pt141': 'PT-141 (Bremelanotide)', 'pt-141': 'PT-141 (Bremelanotide)',
+      'mt2': 'Melanotan II (MT-2)', 'mt-2': 'Melanotan II (MT-2)', 'nad': 'NAD+',
+      'kpv': 'KPV', 'dsip': 'DSIP', 'aod': 'AOD 9604', 'igf': 'IGF-1 LR3',
+      'epithalon': 'Epithalon', 'sermorelin': 'Sermorelin', 'klow': 'KLOW Blend (BPC/TB500/KPV/GHKCu)',
+      'vip': 'VIP (Vasoactive Intestinal Peptide)', 'hexarelin': 'Hexarelin',
+      'semax': 'Semax', 'selank': 'Selank', 'adamax': 'Adamax (N-Acetyl Semax Amidate)',
+      'adalank': 'Adalank (N-Acetyl Selank Amidate)', 'noopept': 'Noopept',
+      'tesamorelin': 'Tesamorelin', 'hcg': 'HCG', 'oxytocin': 'Oxytocin',
+      'mots': 'MOTS-C', 'humanin': 'Humanin', 'foxo4': 'FOXO4-DRI',
+    };
+    for (const [short, full] of Object.entries(shorts)) {
+      if (q.includes(short)) { found = full; break; }
+    }
+  }
+
+  const isSideEffect = /side effect|risk|danger|safe|adverse|react|harm|hurt|bad|negative|problem|concern/.test(q);
+  const isDose       = /dose|dosing|how much|how many|unit|mg|mcg|inject|draw|syringe|amount/.test(q);
+  const isTiming     = /when|timing|morning|evening|night|time|fasted|meal|sleep|before|after/.test(q);
+  const isCycle      = /cycle|how long|length|break|off|week|month|duration|stop/.test(q);
+  const isStack      = /stack|combine|together|with|pair|mix|use with/.test(q);
+  const isUses       = /good for|use|benefit|help|treat|work|what does|what is|why|purpose/.test(q);
+  const isGeneral    = /what is a peptide|how do peptide|what are peptide|explain peptide/.test(q);
+
+  let html = '';
+
+  // General peptide question (no specific peptide)
+  if (isGeneral) {
+    html = `<strong style="color:var(--teal)">What are Peptides?</strong><p style="margin-top:8px;">Peptides are short chains of amino acids — the building blocks of proteins. They act as signaling molecules in the body, directing biological processes like tissue repair, hormone release, immune function, and metabolism. Research peptides mimic or amplify these natural signals.</p><p style="margin-top:8px; color:var(--text2); font-size:12px;">Use the search bar or dropdown above to explore specific peptides.</p>`;
+    showAnswer(html, answerEl); return;
+  }
+
+  // No peptide found
+  if (!found) {
+    // Try symptom search
+    const results = [];
+    for (const [name, info] of Object.entries(PEPTIDE_INFO)) {
+      const text = [name.toLowerCase(), ...info.uses.map(u=>u.toLowerCase())].join(' ');
+      if (text.includes(q.replace(/\?/g,'').trim())) results.push(name);
+    }
+    if (results.length > 0) {
+      html = `<strong style="color:var(--teal)">Peptides related to your question:</strong><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">` +
+        results.slice(0, 8).map(n => `<button onclick="loadRefPeptide('${n.replace(/'/g,"\\'")}'); document.getElementById('qa-input').value='';" style="background:var(--accent-dim);border:1px solid rgba(16,185,129,0.3);color:var(--accent);font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;">${n}</button>`).join('') + `</div>`;
+    } else {
+      html = `<span style="color:var(--text2)">I couldn't identify a specific peptide in your question. Try mentioning a peptide by name — e.g. <em>"What are the side effects of BPC-157?"</em> or <em>"How do I dose Semaglutide?"</em></span>`;
+    }
+    showAnswer(html, answerEl); return;
+  }
+
+  const info = PEPTIDE_INFO[found];
+  const se   = SIDE_EFFECTS[found] || ['No significant side effects documented in current research.'];
+
+  if (isSideEffect) {
+    html = `<strong style="color:var(--teal)">${found} — Common Side Effects</strong>
+    <div style="margin-top:10px;">${se.map(s => `<div style="display:flex;gap:8px;margin-bottom:6px;"><span style="color:var(--text2);flex-shrink:0;">·</span><span>${s}</span></div>`).join('')}</div>`;
+  } else if (isDose) {
+    html = `<strong style="color:var(--teal)">${found} — Dosing</strong>
+    <div style="margin-top:10px; background:var(--bg); border-radius:8px; padding:10px;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">TYPICAL DOSE</div>
+      <div style="font-weight:700;">${info.dose}</div>
+    </div>
+    <div style="margin-top:8px; background:var(--bg); border-radius:8px; padding:10px;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">TIMING</div>
+      <div style="font-weight:700;">${info.timing}</div>
+    </div>`;
+  } else if (isTiming) {
+    html = `<strong style="color:var(--teal)">${found} — When to Take</strong>
+    <div style="margin-top:10px; background:var(--bg); border-radius:8px; padding:10px;">
+      <div style="font-weight:700; margin-bottom:4px;">${info.timing}</div>
+      <div style="color:var(--text2); font-size:13px;">${info.notes}</div>
+    </div>`;
+  } else if (isCycle) {
+    html = `<strong style="color:var(--teal)">${found} — Cycle Length</strong>
+    <div style="margin-top:10px; background:var(--bg); border-radius:8px; padding:10px; font-weight:700;">${info.cycle}</div>
+    <div style="margin-top:8px; color:var(--text2); font-size:13px;">${info.notes}</div>`;
+  } else if (isStack) {
+    const stacks = info.stacks;
+    html = `<strong style="color:var(--teal)">${found} — Common Stacks</strong>
+    <div style="margin-top:10px;">` + (stacks.length > 0
+      ? stacks.map(s => `<button onclick="loadRefPeptide('${s.replace(/'/g,"\\'")}');" style="background:var(--teal-dim);border:1px solid rgba(45,212,191,0.25);color:var(--teal);font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;margin-right:6px;margin-bottom:6px;">${s}</button>`).join('')
+      : `<span style="color:var(--text2);">No specific common stacks listed for this peptide.</span>`)
+    + `</div>`;
+  } else {
+    // Default: general info (uses + key facts)
+    html = `<strong style="color:var(--teal)">${found}</strong>
+    <div style="margin-top:10px;">${info.uses.map(u => `<div style="display:flex;gap:8px;margin-bottom:6px;"><span style="color:var(--accent);">✓</span><span>${u}</span></div>`).join('')}</div>
+    <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <div style="background:var(--bg);border-radius:8px;padding:10px;">
+        <div style="font-size:10px;color:var(--text2);margin-bottom:3px;">DOSE</div>
+        <div style="font-size:12px;font-weight:700;">${info.dose}</div>
+      </div>
+      <div style="background:var(--bg);border-radius:8px;padding:10px;">
+        <div style="font-size:10px;color:var(--text2);margin-bottom:3px;">TIMING</div>
+        <div style="font-size:12px;font-weight:700;">${info.timing}</div>
+      </div>
+    </div>`;
+  }
+
+  html += `<div style="margin-top:12px; font-size:11px; color:var(--text2); border-top:1px solid var(--border); padding-top:10px;">⚠️ Research purposes only — not medical advice. <button onclick="loadRefPeptide('${found.replace(/'/g,"\\'")}');" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;text-decoration:underline;">View full profile →</button></div>`;
+
+  showAnswer(html, answerEl);
+}
+
+function showAnswer(html, el) {
+  el.innerHTML = html;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
 
 function refSearch() {
   const query = document.getElementById('ref-search').value.trim().toLowerCase();
@@ -2718,6 +2926,16 @@ function showPeptideInfo(nameOverride) {
 
       <div class="card-title" style="margin-bottom:8px;">Common Stacks With</div>
       <div style="margin-bottom:16px; display:flex; flex-wrap:wrap;">${stacksHtml}</div>
+
+      <div class="card-title" style="margin-bottom:8px;">Common Side Effects</div>
+      <div style="margin-bottom:16px;">
+        ${(SIDE_EFFECTS[name] || ['No significant side effects documented.']).map(s =>
+          `<div style="display:flex;gap:8px;margin-bottom:6px;">
+            <span style="color:var(--text2);flex-shrink:0;margin-top:2px;">·</span>
+            <span style="font-size:13px;color:var(--text)">${s}</span>
+          </div>`
+        ).join('')}
+      </div>
 
       <div style="background:var(--surface2); border-left:3px solid var(--accent); border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:11px 13px; font-size:13px; color:var(--text2); line-height:1.6; margin-bottom:14px;">
         <strong style="color:var(--text);">Notes: </strong>${info.notes}
