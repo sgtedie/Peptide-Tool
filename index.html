@@ -753,6 +753,12 @@ select {
       <div class="hero-unit">units</div>
     </div>
 
+    <!-- Live syringe visualization -->
+    <div class="card" style="padding:16px 12px 8px; margin-bottom:12px;">
+      <div class="card-title" style="margin-bottom:8px;">Syringe View</div>
+      <div id="c-syringe"></div>
+    </div>
+
     <div class="result-grid">
       <div class="result-item">
         <div class="result-label">Concentration</div>
@@ -1400,6 +1406,116 @@ function clearDecoder() {
   document.getElementById('d-empty').style.display = 'block';
 }
 
+// ─────────────────────────────────────────────────────────
+// SYRINGE VISUALIZATION
+// ─────────────────────────────────────────────────────────
+function drawSyringe(units, elemId) {
+  const u = Math.max(0, Math.min(100, units));
+  const BX = 52, BY = 26, BW = 284, BH = 52;
+  const fillW = (u / 100) * BW;
+  // Fluid fills from NEEDLE end (right) toward plunger (left)
+  const fluidX = BX + BW - fillW; // left edge of fluid
+  const mid = BY + BH / 2;
+  const labelX = Math.min(Math.max(fluidX, BX + 18), BX + BW - 18);
+  const overflowing = units > 100;
+
+  // Tick marks + labels — 0 at needle (right), 100 at plunger (left)
+  let ticks = '';
+  for (let i = 0; i <= 10; i++) {
+    const tu = i * 10;
+    const tx = BX + BW - (tu / 100) * BW; // reversed: 0=right, 100=left
+    const major = tu % 20 === 0;
+    ticks += `<line x1="${tx}" y1="${BY + BH}" x2="${tx}" y2="${BY + BH + (major ? 13 : 7)}"
+      stroke="var(--text2)" stroke-width="${major ? 1.5 : 1}" opacity="${major ? 0.5 : 0.25}"/>`;
+    if (major) ticks += `<text x="${tx}" y="${BY + BH + 25}" text-anchor="middle"
+      font-size="9" fill="var(--text2)" opacity="0.5">${tu}</text>`;
+  }
+
+  // Grid lines inside barrel
+  let grid = '';
+  for (let i = 1; i < 10; i++) {
+    const gx = BX + (i / 10) * BW;
+    grid += `<line x1="${gx}" y1="${BY + 4}" x2="${gx}" y2="${BY + BH - 4}"
+      stroke="var(--border)" stroke-width="1"/>`;
+  }
+
+  const accentColor = overflowing ? 'var(--red)' : 'var(--accent)';
+  const fillColor   = overflowing ? 'rgba(248,113,113,0.22)' : 'rgba(16,185,129,0.22)';
+  const unitLabel   = units % 1 === 0 ? units : units.toFixed(1);
+
+  document.getElementById(elemId).innerHTML = `
+<svg viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg" style="width:100%; display:block;">
+  <defs>
+    <linearGradient id="fg_${elemId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="${accentColor}" stop-opacity="0.08"/>
+      <stop offset="45%"  stop-color="${accentColor}" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="${accentColor}" stop-opacity="0.08"/>
+    </linearGradient>
+    <clipPath id="bc_${elemId}">
+      <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="5"/>
+    </clipPath>
+  </defs>
+
+  <!-- Plunger cap (left) -->
+  <rect x="5" y="${BY + 7}" width="18" height="${BH - 14}" rx="3"
+    fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+  <!-- Plunger rod -->
+  <rect x="23" y="${mid - 5}" width="${BX - 23}" height="10" rx="2"
+    fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/>
+
+  <!-- Barrel background -->
+  <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="5"
+    fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+
+  <!-- Fluid fill — from needle end (right) toward plunger (left) -->
+  ${u > 0 ? `
+  <rect x="${fluidX}" y="${BY}" width="${fillW}" height="${BH}"
+    fill="${fillColor}" clip-path="url(#bc_${elemId})"/>
+  <rect x="${fluidX}" y="${BY}" width="${fillW}" height="${BH}"
+    fill="url(#fg_${elemId})" clip-path="url(#bc_${elemId})"/>
+  ` : ''}
+
+  <!-- Grid lines -->
+  ${grid}
+
+  <!-- Barrel border on top -->
+  <rect x="${BX}" y="${BY}" width="${BW}" height="${BH}" rx="5"
+    fill="none" stroke="var(--border)" stroke-width="1.5"/>
+
+  <!-- Plunger rubber tip / fill indicator -->
+  ${u > 0 ? `
+  <line x1="${fluidX}" y1="${BY - 3}" x2="${fluidX}" y2="${BY + BH + 3}"
+    stroke="${accentColor}" stroke-width="2.5" stroke-linecap="round"/>
+  ` : ''}
+
+  <!-- Units label above indicator -->
+  ${u > 0 ? `
+  <rect x="${labelX - 22}" y="${BY - 22}" width="44" height="18" rx="9"
+    fill="${accentColor}" opacity="0.15"/>
+  <text x="${labelX}" y="${BY - 9}" text-anchor="middle"
+    font-size="11" font-weight="800" fill="${accentColor}">${unitLabel}u</text>
+  ` : ''}
+
+  ${overflowing ? `
+  <text x="${BX + BW/2}" y="${mid + 5}" text-anchor="middle"
+    font-size="11" font-weight="700" fill="var(--red)">⚠ Exceeds 100u — use a larger syringe</text>
+  ` : ''}
+
+  <!-- Needle hub (right) -->
+  <rect x="${BX + BW}" y="${BY + 13}" width="22" height="${BH - 26}" rx="3"
+    fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+  <!-- Needle shaft -->
+  <line x1="${BX + BW + 22}" y1="${mid}" x2="${BX + BW + 50}" y2="${mid}"
+    stroke="var(--text2)" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  <!-- Needle tip bevel -->
+  <line x1="${BX + BW + 48}" y1="${mid}" x2="${BX + BW + 54}" y2="${mid + 3}"
+    stroke="var(--text2)" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
+
+  <!-- Tick marks + labels -->
+  ${ticks}
+</svg>`;
+}
+
 function setModalDoseUnit(unit) {
   modalDoseUnit = unit;
   document.getElementById('m-unit-mg').style.background  = unit === 'mg'  ? 'var(--accent)' : 'none';
@@ -1468,6 +1584,7 @@ function calcUpdate() {
   const fmt = (n, d=2) => +n.toFixed(d) === Math.round(n) ? Math.round(n) : n.toFixed(d);
 
   document.getElementById('r-units').textContent  = fmt(units, 1);
+  drawSyringe(units, 'c-syringe');
   document.getElementById('r-conc').textContent   = fmt(conc, 2);
   document.getElementById('r-vol').textContent    = fmt(volMl, 3);
   document.getElementById('r-shots').textContent  = fmt(shotsPerVial, 1);
