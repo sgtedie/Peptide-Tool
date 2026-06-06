@@ -689,11 +689,35 @@ select {
 <!-- APP HEADER -->
 <div class="app-header">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-    <div class="app-title" style="margin-bottom:0">💉 Peptide Tools</div>
+    <div class="app-title" style="margin-bottom:0; display:flex; align-items:center; gap:6px;">
+      <!-- Vial icon -->
+      <svg width="13" height="20" viewBox="0 0 13 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+        <defs><clipPath id="vc"><rect x="2" y="5" width="9" height="14" rx="3"/></clipPath></defs>
+        <!-- Rubber stopper -->
+        <rect x="3" y="0.5" width="7" height="3.2" rx="1.4" fill="currentColor" opacity="0.65"/>
+        <!-- Stopper ridges -->
+        <line x1="3" y1="1.8" x2="10" y2="1.8" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
+        <line x1="3" y1="2.8" x2="10" y2="2.8" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
+        <!-- Neck -->
+        <rect x="4" y="3.7" width="5" height="1.5" fill="currentColor" opacity="0.4"/>
+        <!-- Glass body -->
+        <rect x="2" y="5" width="9" height="14" rx="3" stroke="currentColor" stroke-width="1.2"/>
+        <!-- Liquid fill -->
+        <rect x="2.6" y="10.5" width="7.8" height="8" fill="currentColor" opacity="0.22" clip-path="url(#vc)"/>
+        <!-- Fill level line -->
+        <line x1="2.3" y1="10.5" x2="10.7" y2="10.5" stroke="currentColor" stroke-width="0.9" opacity="0.45"/>
+        <!-- Glass reflection -->
+        <line x1="3.8" y1="6.5" x2="3.8" y2="10" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.28"/>
+        <!-- Bubble -->
+        <circle cx="6.5" cy="13.5" r="0.8" fill="currentColor" opacity="0.38"/>
+        <circle cx="8.2" cy="15.5" r="0.55" fill="currentColor" opacity="0.28"/>
+      </svg>
+      Peptide Tools
+    </div>
     <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--yellow); background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.25); border-radius:20px; padding:3px 9px; white-space:nowrap;">⚠️ Research Only</span>
   </div>
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('calc', this)">🧮 Calculator</button>
+    <button class="tab-btn active" onclick="switchTab('calc', this)"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline;vertical-align:-1px;margin-right:4px"><rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><rect x="2.5" y="2.5" width="9" height="2.8" rx="0.6" fill="currentColor" opacity="0.85"/><rect x="2.5" y="7" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="5.75" y="7" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="9" y="7" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="2.5" y="10" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="5.75" y="10" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="9" y="10" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/></svg>Calculator</button>
     <button class="tab-btn" onclick="switchTab('sched', this)">📅 Scheduler</button>
     <button class="tab-btn" onclick="switchTab('ref', this)">📖 Reference</button>
   </div>
@@ -706,7 +730,7 @@ select {
 
   <!-- Mode toggle -->
   <div style="display:flex; gap:6px; margin-bottom:12px;">
-    <button id="mode-calc" onclick="setCalcMode('calc')" class="btn btn-primary" style="flex:1; padding:10px; font-size:12px;">🧮 Dose Calculator</button>
+    <button id="mode-calc" onclick="setCalcMode('calc')" class="btn btn-primary" style="flex:1; padding:10px; font-size:12px;"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline;vertical-align:-1px;margin-right:4px"><rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><rect x="2.5" y="2.5" width="9" height="2.8" rx="0.6" fill="currentColor" opacity="0.85"/><rect x="2.5" y="7" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="5.75" y="7" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="9" y="7" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="2.5" y="10" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="5.75" y="10" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="9" y="10" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/></svg>Dose Calculator</button>
     <button id="mode-decoder" onclick="setCalcMode('decoder')" class="btn btn-secondary" style="flex:1; padding:10px; font-size:12px;">🔍 Dose Decoder</button>
     <button id="mode-recon" onclick="setCalcMode('recon')" class="btn btn-secondary" style="flex:1; padding:10px; font-size:12px;">⚗️ Reconstitution</button>
   </div>
