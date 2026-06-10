@@ -4,6 +4,91 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Peptide Tools</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Peptide Tools">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0d14">
+<script>
+// Generate app icon for home screen
+(function() {
+  try {
+    const s = 180, c = document.createElement('canvas');
+    c.width = c.height = s;
+    const x = c.getContext('2d'), cx = s / 2;
+
+    // Background with rounded corners
+    x.beginPath();
+    const r = 38;
+    x.moveTo(r,0); x.lineTo(s-r,0); x.quadraticCurveTo(s,0,s,r);
+    x.lineTo(s,s-r); x.quadraticCurveTo(s,s,s-r,s);
+    x.lineTo(r,s); x.quadraticCurveTo(0,s,0,s-r);
+    x.lineTo(0,r); x.quadraticCurveTo(0,0,r,0); x.closePath();
+    const bg = x.createLinearGradient(0,0,0,s);
+    bg.addColorStop(0,'#141820'); bg.addColorStop(1,'#0d0d14');
+    x.fillStyle = bg; x.fill();
+
+    // Helper: roundRect
+    function rr(lx,ly,lw,lh,lr) {
+      x.beginPath();
+      x.moveTo(lx+lr,ly); x.lineTo(lx+lw-lr,ly);
+      x.quadraticCurveTo(lx+lw,ly,lx+lw,ly+lr);
+      x.lineTo(lx+lw,ly+lh-lr); x.quadraticCurveTo(lx+lw,ly+lh,lx+lw-lr,ly+lh);
+      x.lineTo(lx+lr,ly+lh); x.quadraticCurveTo(lx,ly+lh,lx,ly+lh-lr);
+      x.lineTo(lx,ly+lr); x.quadraticCurveTo(lx,ly,lx+lr,ly);
+      x.closePath();
+    }
+
+    // Rubber stopper
+    const stopGrad = x.createLinearGradient(0,18,0,46);
+    stopGrad.addColorStop(0,'#34d399'); stopGrad.addColorStop(1,'#10b981');
+    x.fillStyle = stopGrad;
+    rr(cx-30,18,60,28,10); x.fill();
+    // Stopper ridges
+    x.strokeStyle='rgba(0,0,0,0.2)'; x.lineWidth=2;
+    [27,34,41].forEach(y => { x.beginPath(); x.moveTo(cx-26,y); x.lineTo(cx+26,y); x.stroke(); });
+
+    // Neck
+    x.fillStyle='rgba(16,185,129,0.5)';
+    rr(cx-16,46,32,14,4); x.fill();
+
+    // Glass body outline
+    x.lineWidth=5; x.strokeStyle='#34d399';
+    rr(cx-40,60,80,104,22); x.stroke();
+
+    // Liquid fill
+    const liqGrad = x.createLinearGradient(0,108,0,164);
+    liqGrad.addColorStop(0,'rgba(52,211,153,0.35)');
+    liqGrad.addColorStop(1,'rgba(16,185,129,0.15)');
+    x.fillStyle = liqGrad;
+    x.save(); rr(cx-40,60,80,104,22); x.clip();
+    x.fillRect(cx-40,108,80,60); x.restore();
+
+    // Fill level line
+    x.strokeStyle='rgba(52,211,153,0.7)'; x.lineWidth=2.5;
+    x.beginPath(); x.moveTo(cx-39,108); x.lineTo(cx+39,108); x.stroke();
+
+    // Glass reflection
+    x.strokeStyle='rgba(255,255,255,0.18)'; x.lineWidth=4; x.lineCap='round';
+    x.beginPath(); x.moveTo(cx-24,70); x.lineTo(cx-24,103); x.stroke();
+
+    // Bubbles
+    [[cx+8,128,8],[cx-10,145,5.5]].forEach(([bx,by,br]) => {
+      x.fillStyle='rgba(52,211,153,0.5)';
+      x.beginPath(); x.arc(bx,by,br,0,Math.PI*2); x.fill();
+    });
+
+    const link = document.createElement('link');
+    link.rel = 'apple-touch-icon';
+    link.href = c.toDataURL('image/png');
+    document.head.appendChild(link);
+
+    const fav = document.createElement('link');
+    fav.rel = 'icon'; fav.type = 'image/png';
+    fav.href = c.toDataURL('image/png');
+    document.head.appendChild(fav);
+  } catch(e) {}
+})();
+</script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
