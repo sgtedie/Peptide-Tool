@@ -1359,15 +1359,18 @@ function setCalcMode(mode) {
 let reconUnit = 'mg';
 
 function setReconUnit(unit) {
+  const input = document.getElementById('r-dose');
+  const current = parseFloat(input.value);
+  if (!isNaN(current) && current > 0) {
+    input.value = unit === 'mcg' ? +(current * 1000).toFixed(4) : +(current / 1000).toFixed(6);
+  }
   reconUnit = unit;
   document.getElementById('r-unit-mg').style.background  = unit === 'mg'  ? 'var(--accent)' : 'none';
   document.getElementById('r-unit-mg').style.color       = unit === 'mg'  ? 'white' : 'var(--text2)';
   document.getElementById('r-unit-mcg').style.background = unit === 'mcg' ? 'var(--accent)' : 'none';
   document.getElementById('r-unit-mcg').style.color      = unit === 'mcg' ? 'white' : 'var(--text2)';
-  document.getElementById('r-dose').placeholder = unit === 'mg' ? 'e.g. 0.25' : 'e.g. 250';
-  document.getElementById('r-dose').value = '';
-  document.getElementById('r-results').style.display = 'none';
-  document.getElementById('r-empty').style.display = 'block';
+  input.placeholder = unit === 'mg' ? 'e.g. 0.25' : 'e.g. 250';
+  reconUpdate();
 }
 
 function reconUpdate() {
@@ -1583,28 +1586,33 @@ function drawSyringe(units, elemId) {
 }
 
 function setModalDoseUnit(unit) {
+  const input = document.getElementById('m-dose');
+  const current = parseFloat(input.value);
+  if (!isNaN(current) && current > 0) {
+    input.value = unit === 'mcg' ? +(current * 1000).toFixed(4) : +(current / 1000).toFixed(6);
+  }
   modalDoseUnit = unit;
   document.getElementById('m-unit-mg').style.background  = unit === 'mg'  ? 'var(--accent)' : 'none';
   document.getElementById('m-unit-mg').style.color       = unit === 'mg'  ? 'white' : 'var(--text2)';
   document.getElementById('m-unit-mcg').style.background = unit === 'mcg' ? 'var(--accent)' : 'none';
   document.getElementById('m-unit-mcg').style.color      = unit === 'mcg' ? 'white' : 'var(--text2)';
-  const input = document.getElementById('m-dose');
   input.placeholder = unit === 'mg' ? 'e.g. 0.25' : 'e.g. 250';
-  input.value = '';
-  document.getElementById('m-units-preview').style.display = 'none';
+  updateModalUnits();
 }
 
 function setDoseUnit(unit) {
+  const input = document.getElementById('c-dose');
+  const current = parseFloat(input.value);
+  if (!isNaN(current) && current > 0) {
+    input.value = unit === 'mcg' ? +(current * 1000).toFixed(4) : +(current / 1000).toFixed(6);
+  }
   doseUnit = unit;
   document.getElementById('unit-mg').style.background  = unit === 'mg'  ? 'var(--accent)' : 'none';
   document.getElementById('unit-mg').style.color       = unit === 'mg'  ? 'white' : 'var(--text2)';
   document.getElementById('unit-mcg').style.background = unit === 'mcg' ? 'var(--accent)' : 'none';
   document.getElementById('unit-mcg').style.color      = unit === 'mcg' ? 'white' : 'var(--text2)';
-  const input = document.getElementById('c-dose');
   input.placeholder = unit === 'mg' ? 'e.g. 0.25' : 'e.g. 250';
-  input.value = '';
-  document.getElementById('c-results').style.display = 'none';
-  document.getElementById('c-empty').style.display = 'block';
+  calcUpdate();
 }
 
 function onCalcPeptideChange() {
@@ -1706,10 +1714,12 @@ function updateModalUnits() {
 function editPeptide(id) {
   const p = peptides.find(x => x.id === id);
   if (!p) return;
-  editingId = id;
 
-  // Open modal and pre-fill
+  // Open modal (resets state + sets editingId = null)
   openModal();
+
+  // Now set editingId AFTER openModal so it isn't cleared
+  editingId = id;
 
   // Set peptide name
   const sel = document.getElementById('m-peptide');
@@ -1727,6 +1737,10 @@ function editPeptide(id) {
   const showMcg = p.dose < 1;
   setModalDoseUnit(showMcg ? 'mcg' : 'mg');
   document.getElementById('m-dose').value = showMcg ? p.dose * 1000 : p.dose;
+
+  // Restore vial size and BAC water if saved
+  if (p.vial) document.getElementById('m-vial').value = p.vial;
+  if (p.bac)  document.getElementById('m-bac').value  = p.bac;
 
   // Set timing
   pick(document.querySelector(`#m-timing [data-val="${p.timing}"]`), 'm-timing');
@@ -1757,7 +1771,7 @@ function editPeptide(id) {
 }
 
 function openModal() {
-  editingId = null;
+  editingId = null; // only reset when opening fresh — editPeptide overrides this after
   // Reset modal state
   document.getElementById('m-peptide').value = '';
   document.getElementById('m-dose').value = '';
@@ -1867,17 +1881,19 @@ function addPeptide() {
   const vial  = parseFloat(document.getElementById('m-vial').value) || null;
   const bac   = parseFloat(document.getElementById('m-bac').value) || null;
   const units = (vial && bac && dose) ? (dose / (vial / bac)) * 100 : null;
+  const peptideData = { name, dose, units, vial, bac, timing, cycle };
+
   if (editingId !== null) {
     // Update existing peptide
     const idx = peptides.findIndex(p => p.id === editingId);
-    if (idx !== -1) peptides[idx] = { id: editingId, name, dose, units, timing, cycle };
+    if (idx !== -1) peptides[idx] = { id: editingId, ...peptideData };
     editingId = null;
     renderPeptideList();
     closeModal();
     document.getElementById('s-output').innerHTML = '';
     showToast(`✓ ${name} updated`);
   } else {
-    peptides.push({ id: Date.now(), name, dose, units, timing, cycle });
+    peptides.push({ id: Date.now(), ...peptideData });
     renderPeptideList();
     closeModal();
     showToast(`✓ ${name} added`);
