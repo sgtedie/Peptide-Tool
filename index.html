@@ -1881,7 +1881,7 @@ function addPeptide() {
   const vial  = parseFloat(document.getElementById('m-vial').value) || null;
   const bac   = parseFloat(document.getElementById('m-bac').value) || null;
   const units = (vial && bac && dose) ? (dose / (vial / bac)) * 100 : null;
-  const peptideData = { name, dose, units, vial, bac, timing, cycle };
+  const peptideData = { name, dose, units, vial, bac, timing, cycle, displayUnit: modalDoseUnit };
 
   if (editingId !== null) {
     // Update existing peptide
@@ -1941,7 +1941,7 @@ function renderPeptideList() {
         </div>
       </div>
       <div class="peptide-item-badges">
-        <span class="badge badge-purple">${p.dose < 1 ? (p.dose * 1000) + 'mcg' : p.dose + 'mg'}${p.units !== null ? ` · ${fmtU(p.units)} units` : ''}</span>
+        <span class="badge badge-purple">${fmtDoseDisplay(p)}${p.units !== null ? ` · ${fmtU(p.units)} units` : ''}</span>
         <span class="badge badge-teal">${TIMING_LABEL[p.timing]}</span>
         <span class="badge badge-yellow">${cycleLabel(p.cycle)}</span>
       </div>
@@ -2116,12 +2116,12 @@ function buildScheduleText(startDate, days) {
       text += `  — Rest Day\n`;
     } else {
       amList.forEach(p => {
-        const display = p.dose < 1 ? `${p.dose*1000}mcg` : `${p.dose}mg`;
+        const display = fmtDoseDisplay(p);
         const units = p.units !== null ? ` (${fmtU(p.units)} units)` : '';
         text += `  AM: ${p.name} — ${display}${units}\n`;
       });
       pmList.forEach(p => {
-        const display = p.dose < 1 ? `${p.dose*1000}mcg` : `${p.dose}mg`;
+        const display = fmtDoseDisplay(p);
         const units = p.units !== null ? ` (${fmtU(p.units)} units)` : '';
         text += `  PM: ${p.name} — ${display}${units}\n`;
       });
@@ -3009,6 +3009,16 @@ function addRefToScheduler(name) {
     }
   }
   showToast('✓ Pre-filled — finish adding your settings');
+}
+
+function fmtDoseDisplay(p) {
+  // Respect user's chosen display unit; fallback: mcg if < 1mg, mg otherwise
+  const unit = p.displayUnit || (p.dose < 1 ? 'mcg' : 'mg');
+  if (unit === 'mcg') {
+    const val = p.dose * 1000;
+    return (val % 1 === 0 ? val : +val.toFixed(2)) + 'mcg';
+  }
+  return (p.dose % 1 === 0 ? p.dose : +p.dose.toFixed(4).replace(/\.?0+$/, '')) + 'mg';
 }
 
 function fmtU(n) {
