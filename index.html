@@ -825,7 +825,7 @@ select {
 .auth-error {
   background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3);
   border-radius: var(--radius-sm); padding: 10px 12px;
-  color: var(--red); font-size: 13px; margin-bottom: 14px; display: none;
+  color: var(--red); font-size: 13px; margin-bottom: 14px; display: none; min-height: 0;
 }
 .auth-success {
   background: var(--accent-dim); border: 1px solid rgba(16,185,129,0.3);
@@ -3600,19 +3600,18 @@ async function doGateSignIn() {
   const pass  = document.getElementById('gate-pass').value;
   const errEl = document.getElementById('gate-error');
   const btn   = document.getElementById('gate-login-btn');
-  errEl.textContent = '';
-  if (!email || !pass) { errEl.textContent = 'Please enter your email and password.'; return; }
+  errEl.textContent = ''; errEl.style.display = 'none';
+  if (!email || !pass) { errEl.textContent = 'Please enter your email and password.'; errEl.style.display = 'block'; return; }
   btn.disabled = true; btn.textContent = 'Signing in…';
   try {
     const { error } = await _supa.auth.signInWithPassword({ email, password: pass });
     if (error) {
-      if (error.message.toLowerCase().includes('invalid') || error.message.toLowerCase().includes('credentials')) {
-        errEl.textContent = '❌ Incorrect email or password. Please try again.';
-      } else {
-        errEl.textContent = '❌ ' + error.message;
-      }
+      errEl.textContent = error.message.toLowerCase().includes('invalid') || error.message.toLowerCase().includes('credentials')
+        ? '❌ Incorrect email or password. Please try again.'
+        : '❌ ' + error.message;
+      errEl.style.display = 'block';
     }
-  } catch(e) { errEl.textContent = '❌ Sign in failed. Please try again.'; }
+  } catch(e) { errEl.textContent = '❌ Sign in failed. Please try again.'; errEl.style.display = 'block'; }
   btn.disabled = false; btn.textContent = 'Log In →';
 }
 
