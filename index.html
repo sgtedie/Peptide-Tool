@@ -2078,6 +2078,9 @@ function clearCalc() {
   document.getElementById('c-empty').style.display = 'block';
 }
 
+// Stored calc data for use after picker
+let _pendingCalc = null;
+
 function sendCalcToSchedule() {
   const doseRaw = parseFloat(document.getElementById('c-dose').value);
   const vial = parseFloat(document.getElementById('c-vial').value);
@@ -2088,35 +2091,87 @@ function sendCalcToSchedule() {
     return;
   }
 
-  // Switch to scheduler tab and open modal
+  _pendingCalc = { doseRaw, vial, bac, unit: doseUnit };
+  openPickerModal();
+}
+
+function openPickerModal() {
+  const modal = document.getElementById('pick-sched-modal');
+  const list = document.getElementById('pick-sched-list');
+  if (!modal || !list) return;
+
+  let html = '';
+  // Current stack option
+  html += `<div onclick="pickSchedule(null)" style="padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:20px;">➕</span>
+    <div><div style="font-weight:700;font-size:14px;">Current Stack</div><div style="font-size:11px;color:var(--text2);">Add to your active peptide list</div></div>
+  </div>`;
+
+  if (cachedSchedules.length) {
+    cachedSchedules.forEach(s => {
+      const count = (s.schedule_data?.peptides||[]).length;
+      html += `<div onclick="pickSchedule('${s.id}')" style="padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">📋</span>
+        <div><div style="font-weight:700;font-size:14px;">${s.name}</div><div style="font-size:11px;color:var(--text2);">${count} peptide${count!==1?'s':''} · ${s.weeks||4} weeks</div></div>
+      </div>`;
+    });
+  } else {
+    html += '<div style="font-size:13px;color:var(--text2);text-align:center;padding:8px 0;">No saved schedules yet</div>';
+  }
+
+  list.innerHTML = html;
+  modal.style.display = 'flex';
+}
+
+function closePicker() {
+  const modal = document.getElementById('pick-sched-modal');
+  if (modal) modal.style.display = 'none';
+  _pendingCalc = null;
+}
+
+async function pickSchedule(schedId) {
+  closePicker();
+  if (!_pendingCalc) return;
+  const { doseRaw, vial, bac, unit } = _pendingCalc;
+
+  if (schedId) {
+    // Load that saved schedule's peptides first
+    try {
+      const { data, error } = await _supa.from('saved_schedules').select('*').eq('id', schedId).single();
+      if (error || !data) { showToast('Could not load schedule'); return; }
+      const saved = data.schedule_data || {};
+      peptides = JSON.parse(JSON.stringify(saved.peptides || []));
+      activeScheduleId = schedId;
+      activeScheduleName = data.name;
+      renderPeptideList();
+      setEditMode(true);
+    } catch(e) { showToast('Error loading schedule'); return; }
+  }
+
+  // Switch to scheduler tab
   const schedBtn = document.querySelector('.tab-btn[onclick*="scheduler"]');
   if (schedBtn) switchTab('scheduler', schedBtn);
 
   setTimeout(() => {
     openModal();
-    // Reset peptide selection so user must pick
     const mSel = document.getElementById('m-peptide');
     if (mSel) { mSel.value = ''; onModalPeptideChange(); }
 
-    // Pre-fill dose
     const mDose = document.getElementById('m-dose');
     if (mDose) {
       mDose.value = doseRaw;
-      // Match calc unit
       document.querySelectorAll('#m-dose-unit .toggle-btn').forEach(b => b.classList.remove('active'));
-      const targetUnit = doseUnit === 'mcg' ? 'mcg' : 'mg';
+      const targetUnit = unit === 'mcg' ? 'mcg' : 'mg';
       const unitBtn = document.querySelector('#m-dose-unit [data-val="' + targetUnit + '"]');
       if (unitBtn) { unitBtn.classList.add('active'); modalDoseUnit = targetUnit; }
     }
 
-    // Pre-fill vial + BAC
     const mVial = document.getElementById('m-vial');
     const mBac = document.getElementById('m-bac');
     if (mVial && vial) mVial.value = vial;
     if (mBac && bac) mBac.value = bac;
     updateModalUnits();
-
-    showToast('Select a peptide, then set timing and save');
+    showToast(schedId ? 'Pick peptide, save — then click Update Schedule' : 'Pick a peptide, set timing and save');
   }, 300);
 }
 
@@ -3376,7 +3431,8 @@ async function loadSavedSchedules() {
     const { data, error } = await _supa.from('saved_schedules')
       .select('*').eq('profile_id', currentProfile.id).order('created_at', { ascending: false });
     if (error) throw error;
-    renderSavedSchedules(data || []);
+    cachedSchedules = data || [];
+    renderSavedSchedules(cachedSchedules);
   } catch(e) { console.error('loadSavedSchedules error:', e); }
 }
 
@@ -3403,6 +3459,7 @@ function renderSavedSchedules(list) {
 
 let activeScheduleId = null;
 let activeScheduleName = null;
+let cachedSchedules = [];
 
 function toggleScheduleOutput() {
   const wrap = document.getElementById('s-output-wrap');
@@ -3614,6 +3671,18 @@ document.addEventListener('DOMContentLoaded', () => initSupabase());
   </div>
 </div>
 
+
+<!-- ════════════════════════════════════════════════
+     PICK SCHEDULE MODAL
+════════════════════════════════════════════════ -->
+<div id="pick-sched-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;max-width:380px;width:100%;max-height:80vh;overflow-y:auto;">
+    <div style="font-size:16px;font-weight:800;margin-bottom:4px;">Add to Which Schedule?</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Pick a saved schedule or add to your current stack.</div>
+    <div id="pick-sched-list"></div>
+    <button onclick="closePicker()" style="width:100%;margin-top:14px;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-size:13px;cursor:pointer;">Cancel</button>
+  </div>
+</div>
 </body>
 </html>
                    
