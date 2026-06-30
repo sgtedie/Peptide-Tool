@@ -3182,8 +3182,10 @@ function renderProfileUI() {
   const el = document.getElementById('profile-list');
   if (!el) return;
   el.innerHTML = profiles.map(p => `
-    <div class="profile-card ${p.id === currentProfile?.id ? 'active' : ''}" onclick="switchProfile('${p.id}')">
-      <span>${p.name}</span>${p.id === currentProfile?.id ? '<span style="color:var(--accent)">✓</span>' : ''}
+    <div class="profile-card ${p.id === currentProfile?.id ? 'active' : ''}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;" onclick="switchProfile('${p.id}')">
+      <span style="flex:1;">${p.name}</span>
+      <button onclick="event.stopPropagation();renameProfile('${p.id}','${p.name.replace(/'/g,'\\\'')}')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;padding:2px 6px;" title="Rename">✏️</button>
+      ${p.id === currentProfile?.id ? '<span style="color:var(--accent)">✓</span>' : ''}
     </div>`).join('');
   const addBtn = document.getElementById('add-profile-btn');
   if (addBtn) addBtn.style.display = profiles.length >= 3 ? 'none' : '';
@@ -3192,6 +3194,20 @@ function renderProfileUI() {
 async function switchProfile(id) {
   currentProfile = profiles.find(p => p.id === id);
   if (currentProfile) { localStorage.setItem('lv_profile_id', currentProfile.id); renderProfileUI(); await loadStack(); }
+}
+
+async function renameProfile(id, currentName) {
+  const name = prompt('Rename profile:', currentName);
+  if (!name || !name.trim() || name.trim() === currentName) return;
+  try {
+    const { error } = await _supa.from('profiles').update({ name: name.trim() }).eq('id', id);
+    if (error) throw error;
+    const p = profiles.find(p => p.id === id);
+    if (p) p.name = name.trim();
+    if (currentProfile && currentProfile.id === id) currentProfile.name = name.trim();
+    renderProfileUI();
+    showToast('Profile renamed');
+  } catch(e) { showToast('Error renaming profile'); }
 }
 
 async function addProfile() {
