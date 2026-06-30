@@ -2130,9 +2130,9 @@ function closePicker() {
 }
 
 async function pickSchedule(schedId) {
-  closePicker();
   if (!_pendingCalc) return;
   const { doseRaw, vial, bac, unit } = _pendingCalc;
+  closePicker();
 
   if (schedId) {
     // Load that saved schedule's peptides first
