@@ -3595,7 +3595,7 @@ function switchGateTab(tab) {
   document.getElementById('gate-success').textContent = '';
 }
 
-async function doGateSignIn() {
+async async function doGateSignIn() {
   const email = document.getElementById('gate-email').value.trim();
   const pass  = document.getElementById('gate-pass').value;
   const errEl = document.getElementById('gate-error');
@@ -3605,8 +3605,14 @@ async function doGateSignIn() {
   btn.disabled = true; btn.textContent = 'Signing in…';
   try {
     const { error } = await _supa.auth.signInWithPassword({ email, password: pass });
-    if (error) { errEl.textContent = error.message; }
-  } catch(e) { errEl.textContent = 'Sign in failed. Please try again.'; }
+    if (error) {
+      if (error.message.toLowerCase().includes('invalid') || error.message.toLowerCase().includes('credentials')) {
+        errEl.textContent = '❌ Incorrect email or password. Please try again.';
+      } else {
+        errEl.textContent = '❌ ' + error.message;
+      }
+    }
+  } catch(e) { errEl.textContent = '❌ Sign in failed. Please try again.'; }
   btn.disabled = false; btn.textContent = 'Log In →';
 }
 
