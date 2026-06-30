@@ -1332,7 +1332,10 @@ select {
     </div>
 
     <button class="btn btn-primary" onclick="generateSchedule()">Generate Schedule →</button>
-    <button class="btn btn-secondary" onclick="saveSchedule()" style="margin-top:8px;">💾 Save This Schedule</button>
+    <div id="editing-badge" style="display:none; text-align:center; font-size:11px; font-weight:700; color:var(--accent); background:var(--accent-dim); border-radius:6px; padding:4px 10px; margin-top:6px;"></div>
+    <button id="save-sched-btn" class="btn btn-secondary" onclick="saveSchedule()" style="margin-top:8px;">💾 Save This Schedule</button>
+    <button id="update-sched-btn" class="btn btn-primary" onclick="updateSchedule()" style="margin-top:8px; display:none;">💾 Update Schedule</button>
+    <button id="new-sched-btn" class="btn btn-secondary" onclick="saveAsNew()" style="margin-top:6px; display:none;">＋ Save as New Schedule</button>
   </div>
 
   <div class="card" id="saved-schedules-card">
@@ -2263,12 +2266,14 @@ function addPeptide() {
     closeModal();
     document.getElementById('s-output').innerHTML = '';
     scheduleSyncStack();
+    if (activeScheduleId) setEditMode(true);
     showToast(`✓ ${name} updated`);
   } else {
     peptides.push({ id: Date.now(), ...peptideData });
     renderPeptideList();
     closeModal();
     scheduleSyncStack();
+    if (activeScheduleId) setEditMode(true);
     showToast(`✓ ${name} added`);
   }
 }
@@ -2278,6 +2283,7 @@ function removePeptide(id) {
   renderPeptideList();
   document.getElementById('s-output').innerHTML = '';
   scheduleSyncStack();
+  if (activeScheduleId) setEditMode(true);
 }
 
 function cycleLabel(cycle) {
@@ -3334,23 +3340,55 @@ function renderSavedSchedules(list) {
     </div>`).join('');
 }
 
+let activeScheduleId = null;
+let activeScheduleName = null;
+
 async function loadSchedule(id) {
   try {
     const { data, error } = await _supa.from('saved_schedules').select('*').eq('id', id).single();
     if (error || !data) throw error || new Error('Not found');
-    // Restore peptides from snapshot
+    activeScheduleId = id;
+    activeScheduleName = data.name;
     peptides = data.schedule_data?.peptides || [];
-    // Set weeks
     const weeksEl = document.getElementById('weeks-select');
     if (weeksEl && data.weeks) { weeksEl.value = data.weeks; viewPeriod = data.weeks * 7; }
     renderPeptideList();
-    // Show schedule config and generate
     const cfg = document.getElementById('s-config');
     if (cfg) cfg.style.display = '';
     generateSchedule();
+    setEditMode(true);
     showToast('✅ Loaded: ' + data.name);
-    closeAcctPanel();
   } catch(e) { console.error(e); showToast('Error loading schedule'); }
+}
+
+function setEditMode(editing) {
+  const saveBtn  = document.getElementById('save-sched-btn');
+  const updateBtn = document.getElementById('update-sched-btn');
+  const newBtn   = document.getElementById('new-sched-btn');
+  if (saveBtn)   saveBtn.style.display   = editing ? 'none' : '';
+  if (updateBtn) updateBtn.style.display = editing ? '' : 'none';
+  if (newBtn)    newBtn.style.display    = editing ? '' : 'none';
+  const badge = document.getElementById('editing-badge');
+  if (badge) { badge.textContent = editing ? ('✏️ Editing: ' + (activeScheduleName||'') + ' — modify peptides then click Update') : ''; badge.style.display = editing ? '' : 'none'; }
+}
+
+async function updateSchedule() {
+  if (!activeScheduleId) return;
+  const weeks = parseInt(document.getElementById('weeks-select')?.value) || 4;
+  const data = { peptides: JSON.parse(JSON.stringify(peptides)), weeks };
+  try {
+    const { error } = await _supa.from('saved_schedules').update({ weeks, schedule_data: data }).eq('id', activeScheduleId);
+    if (error) throw error;
+    showToast('✅ Schedule updated');
+    await loadSavedSchedules();
+  } catch(e) { console.error(e); showToast('Error updating schedule'); }
+}
+
+async function saveAsNew() {
+  activeScheduleId = null;
+  activeScheduleName = null;
+  setEditMode(false);
+  await saveSchedule();
 }
 
 async function deleteSchedule(id) {
