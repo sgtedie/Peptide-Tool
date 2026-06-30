@@ -1005,6 +1005,40 @@ select {
   .badge-rest { color: #999 !important; border-color: #ddd !important; }
   .week-block { margin-bottom: 14px !important; }
 }
+
+  /* ── Peptide Combobox ── */
+  .peptide-combo { position: relative; }
+  .combo-input {
+    width: 100%; padding: 10px 36px 10px 12px; box-sizing: border-box;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 14px;
+    outline: none; cursor: pointer;
+  }
+  .combo-input:focus { border-color: var(--accent); }
+  .combo-arrow {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); pointer-events: none; font-size: 12px;
+  }
+  .combo-dropdown {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    max-height: 260px; overflow-y: auto; z-index: 9999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .combo-dropdown.open { display: block; }
+  .combo-group-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    color: var(--accent); text-transform: uppercase;
+    padding: 8px 12px 3px; margin-top: 2px;
+  }
+  .combo-option {
+    padding: 9px 14px; cursor: pointer; font-size: 13px; color: var(--text);
+    transition: background 0.1s;
+  }
+  .combo-option:hover { background: rgba(200,16,46,0.15); }
+  .combo-option.combo-active { background: rgba(200,16,46,0.25); }
+  .combo-empty { padding: 12px 14px; color: var(--muted); font-size: 13px; }
+
 </style>
 </head>
 <body>
@@ -1388,9 +1422,13 @@ select {
     <!-- Peptide select -->
     <div class="field-wrap">
       <label>Peptide</label>
-      <select id="m-peptide" onchange="onModalPeptideChange()">
-        <option value="">— Select —</option>
-      </select>
+      <div class="peptide-combo" id="m-peptide-wrap">
+        <input type="text" class="combo-input" id="m-peptide-input" placeholder="Search peptides..." autocomplete="off"
+          oninput="filterCombo('m-peptide')" onfocus="openCombo('m-peptide')" onblur="closeComboDelay('m-peptide')" onkeydown="comboKey(event,'m-peptide')">
+        <div class="combo-arrow" onclick="toggleCombo('m-peptide')">▾</div>
+        <div class="combo-dropdown" id="m-peptide-dropdown"></div>
+        <input type="hidden" id="m-peptide" value="">
+      </div>
     </div>
     <div id="m-custom-wrap" style="display:none">
       <div class="field-wrap">
@@ -1515,9 +1553,13 @@ select {
   <div class="card">
     <div class="card-title">Browse by Name</div>
     <div class="field-wrap" style="margin-bottom:0">
-      <select id="ref-peptide" onchange="onRefDropdown()">
-        <option value="">— Choose a Peptide —</option>
-      </select>
+      <div class="peptide-combo" id="ref-peptide-wrap">
+        <input type="text" class="combo-input" id="ref-peptide-input" placeholder="Search peptides..." autocomplete="off"
+          oninput="filterCombo('ref-peptide')" onfocus="openCombo('ref-peptide')" onblur="closeComboDelay('ref-peptide')" onkeydown="comboKey(event,'ref-peptide')">
+        <div class="combo-arrow" onclick="toggleCombo('ref-peptide')">▾</div>
+        <div class="combo-dropdown" id="ref-peptide-dropdown"></div>
+        <input type="hidden" id="ref-peptide" value="">
+      </div>
     </div>
   </div>
 
@@ -1706,20 +1748,8 @@ let viewPeriod = 28; // default 4 weeks
 // INIT
 // ─────────────────────────────────────────────────────────
 (function init() {
-  const buildOpts = (placeholder) => {
-    let html = `<option value="">${placeholder}</option>`;
-    for (const cat of PEPTIDE_CATEGORIES) {
-      html += `<optgroup label="${cat.label}">`;
-      html += cat.peptides.map(p =>
-        `<option value="${p.name}">${p.name}</option>`
-      ).join('');
-      html += `</optgroup>`;
-    }
-    return html;
-  };
-
-  document.getElementById('m-peptide').innerHTML = buildOpts('— Select —');
-  document.getElementById('ref-peptide').innerHTML = buildOpts('— Choose a Peptide —');
+  // Initialize searchable comboboxes
+  initCombos();
 
   // Default date = today
   const today = new Date();
@@ -2171,8 +2201,7 @@ async function pickSchedule(schedId) {
 
   setTimeout(() => {
     openModal();
-    const mSel = document.getElementById('m-peptide');
-    if (mSel) { mSel.value = ''; onModalPeptideChange(); }
+    setComboValue('m-peptide', ''); onModalPeptideChange();
 
     const mDose = document.getElementById('m-dose');
     if (mDose) {
@@ -2222,13 +2251,11 @@ function editPeptide(id) {
   editingId = id;
 
   // Set peptide name
-  const sel = document.getElementById('m-peptide');
-  let found = false;
-  for (let i = 0; i < sel.options.length; i++) {
-    if (sel.options[i].value === p.name) { sel.selectedIndex = i; found = true; break; }
-  }
-  if (!found) {
-    sel.value = 'Custom / Other';
+  const knownPeptide = _comboData.find(x => x.name === p.name);
+  if (knownPeptide) {
+    setComboValue('m-peptide', p.name);
+  } else {
+    setComboValue('m-peptide', 'Custom / Other');
     document.getElementById('m-custom-wrap').style.display = 'block';
     document.getElementById('m-custom-name').value = p.name;
   }
@@ -2273,7 +2300,7 @@ function editPeptide(id) {
 function openModal() {
   editingId = null; // only reset when opening fresh — editPeptide overrides this after
   // Reset modal state
-  document.getElementById('m-peptide').value = '';
+  setComboValue('m-peptide', '');
   document.getElementById('m-dose').value = '';
   document.getElementById('m-vial').value = '';
   document.getElementById('m-bac').value = '';
@@ -3575,21 +3602,21 @@ const REF_INFO = {
     examine: "https://examine.com/supplements/noopept/"
   },
   "PE-22-28": {
-    goals: ["depression","antidepressant","mood","serotonin","BDNF","cognitive","anxiety","resilience"],
-    dose: "200–500 mcg/day sub-Q or intranasal (experimental)", timing: "AM preferred", cycle: "2–4 weeks; limited human data",
-    mechanism: "Truncated analog of spadin (a sortilin-derived peptide). Acts as a TREK-1 (potassium channel) antagonist, increasing neuronal excitability and serotonin availability. Also promotes BDNF/TrkB signaling — the same pathway as ketamine.",
-    notes: "Sold by Luvion Bio and specialty vendors. One of the most exciting emerging antidepressants in preclinical research. PE-22-28 showed antidepressant effects comparable to fluoxetine (Prozac) in mouse models — with faster onset. TREK-1 blockade increases serotonin release in prefrontal cortex. Also shows neuroplasticity-promoting effects similar to ketamine but without dissociative properties. Very limited human data — strictly research stage.",
-    sides: "Unknown in humans. No significant toxicity in animal models. Potential: restlessness, insomnia (serotonergic stimulation).",
-    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=PE-22-28+TREK-1+antidepressant",
+    goals: ["depression","antidepressant","mood","serotonin","BDNF","cognitive","anxiety","resilience","neurogenesis"],
+    dose: "50–500 mcg/day intranasal or sub-Q (research dosing)", timing: "AM preferred", cycle: "2–4 weeks; no established human protocol",
+    mechanism: "Synthetic 7-residue peptide derived from residues 22–28 of spadin (a sortilin-derived peptide). Selectively inhibits TREK-1 potassium channels, preventing K⁺ efflux and increasing neuronal excitability. TREK-1 blockade raises serotonin signaling efficiency in the dorsal raphe and prefrontal cortex — the same circuit SSRIs target, but through a faster upstream mechanism. Also promotes hippocampal neurogenesis.",
+    notes: "One of the most promising emerging antidepressants in preclinical research. Mouse models show antidepressant effects comparable to fluoxetine (Prozac) with faster onset. Notably effective even in SSRI-resistant models. No completed human clinical trials as of 2026. Available from Luvion Bio and specialty research vendors. Often discussed alongside ketamine as a rapid-acting depression mechanism.",
+    sides: "Unknown in humans. Animal studies show good tolerability. Potential: restlessness, insomnia (serotonergic activation). No significant toxicity observed in rodent models.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=PE-22-28+TREK-1+antidepressant+spadin",
     examine: ""
   },
   "Dihexa": {
-    goals: ["cognitive","memory","Alzheimer's","dementia","neuroprotection","brain","learning","neurogenesis"],
-    dose: "5–15 mg/day oral, sublingual, or liquid spray; 1–5 mg intranasal (more potent route)", timing: "AM", cycle: "4–8 weeks on, 4 weeks off",
-    mechanism: "Angiotensin IV analog that activates hepatocyte growth factor (HGF) / MET receptor pathway. Promotes synaptogenesis (new synaptic connections) and neurotrophic signaling. Estimated 1 million times more potent than BDNF at crossing the blood-brain barrier.",
-    notes: "Developed at Washington State University (Joseph Harding lab). Among the most potent cognitive-enhancing peptides discovered. Dramatically improved spatial learning in aged rats with cognitive impairment. Available as oral capsules, liquid spray, or sub-Q from GoAlpha Labs and others. Considered a potential breakthrough for Alzheimer's and age-related cognitive decline. Extremely limited human data.",
-    sides: "Largely unknown in humans. Animal studies show good tolerability. Theoretical risk: pro-growth signaling could theoretically promote certain cancers (unconfirmed). Rare reports of irritability.",
-    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=Dihexa+cognitive+synaptogenesis+HGF",
+    goals: ["cognitive","memory","Alzheimer's","dementia","neuroprotection","brain","learning","synaptogenesis"],
+    dose: "No established human dose. Research protocols: 5–15 mg oral/sublingual; 1–5 mg intranasal. Sub-Q doses typically lower.", timing: "AM", cycle: "4–8 weeks on, 4 weeks off",
+    mechanism: "Angiotensin IV analog that potentiates the HGF/c-Met signaling axis, driving dendritic spine formation and synaptogenesis (new synaptic connections) independently of BDNF. Preclinical data shows it may be millions of times more potent than BDNF in driving synapse growth, enabling it to cross the blood-brain barrier effectively.",
+    notes: "Developed at Washington State University (Joseph Harding lab). Dramatically improved spatial learning in aged cognitively-impaired rats. Available as oral capsules, liquid spray, or sub-Q from GoAlpha Labs and other vendors. No human clinical trials completed as of 2026. ⚠️ Theoretical safety concern: stimulating pro-growth pathways (HGF/c-Met) could potentially increase tumor growth risk — this has not been confirmed but warrants caution for those with cancer history.",
+    sides: "Unknown in humans (no clinical trials). Animal studies show good tolerability. Theoretical: pro-growth HGF/c-Met stimulation, potential tumor risk in vulnerable individuals. Community reports: occasional irritability, restlessness.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=Dihexa+synaptogenesis+HGF+Met+cognitive",
     examine: ""
   },
   "Cartalax": {
@@ -3629,12 +3656,12 @@ const REF_INFO = {
     examine: ""
   },
   "9-Me-BC": {
-    goals: ["cognitive","dopamine","neuroprotection","Parkinson's","motivation","focus","neurogenesis"],
-    dose: "5–15 mg/day oral or sublingual", timing: "AM (dopaminergic — avoid PM)", cycle: "4–8 weeks on, 4 weeks off",
-    mechanism: "9-Methyl-β-carboline. Inhibits MAO-A/B enzymes (increasing dopamine, serotonin, norepinephrine). Also promotes neurogenesis, increases BDNF, and is neuroprotective against dopaminergic neuron loss.",
-    notes: "One of the most potent dopaminergic nootropics in research. Endogenous β-carboline found in roasted coffee. Research shows neuronal growth and protection in cell models. Potential for Parkinson's disease research. Available from specialty vendors. Caution: MAO inhibition means dietary tyramine restriction may apply at higher doses.",
-    sides: "⚠️ MAO inhibition — may interact with serotonergic drugs (SSRI, MDMA). Dietary tyramine caution at higher doses. Potential: headache, anxiety, insomnia.",
-    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=9-methyl-beta-carboline+neuroprotection+dopamine",
+    goals: ["cognitive","dopamine","neuroprotection","Parkinson's","motivation","focus","neurogenesis","dendritic growth"],
+    dose: "~0.19 mg/kg/day sub-Q (animal study dose); community oral: 5–15 mg/day", timing: "AM only (dopaminergic — avoid PM to prevent insomnia)", cycle: "4–6 weeks on, 2–4 weeks off",
+    mechanism: "9-Methyl-β-carboline. Upregulates tyrosine hydroxylase (TH) expression, increasing dopamine synthesis. Enhances mitochondrial complex I activity. Promotes dendritic spine density and synaptic complexity in hippocampal neurons. Also has MAO inhibitory properties. Endogenous analog found in roasted coffee.",
+    notes: "Rat studies show improved spatial learning, elevated hippocampal dopamine, and significantly more complex dendritic trees after 10-day treatment (0.19 mg/kg/day sub-Q). No human clinical trials as of 2026. Available from specialty research vendors. ⚠️ MAO inhibitory activity — caution with serotonergic drugs (SSRIs, triptans) and high-tyramine foods at higher doses. Potential for Parkinson's disease research due to dopaminergic neuron support.",
+    sides: "⚠️ MAO inhibition — dangerous combination with SSRIs, SNRIs, or serotonergic substances. Dietary tyramine restriction may apply at higher doses. Potential: headache, anxiety, insomnia, irritability. Zero human safety data.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/22380576/",
     examine: ""
   },
   "P-21": {
@@ -3710,12 +3737,12 @@ const REF_INFO = {
     examine: ""
   },
   "FOXO4-DRI": {
-    goals: ["senescence","longevity","anti-aging","senolytic","cancer","cellular","zombie cells"],
-    dose: "1–5 mg/kg per administration (animal studies); human dose not established", timing: "Periodic (weekly or monthly in research)", cycle: "Short courses, periodic",
-    mechanism: "D-amino acid retro-inverso peptide that disrupts the FOXO4-p53 interaction in senescent cells, triggering apoptosis (programmed death) specifically in senescent 'zombie' cells without affecting healthy cells.",
-    notes: "Developed by Peter de Keizer (Utrecht University). Published in Cell (2017): dramatically restored fitness, fur density, and kidney function in fast-aged mice. One of the first senolytics to show high selectivity for senescent cells. Still early-stage research — human dosing not established. High potential for longevity medicine.",
-    sides: "Unknown in humans. Theoretical: could affect wound healing (senescent cells have roles in healing). High cost and limited availability.",
-    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=FOXO4-DRI+senescent+cells+senolytic",
+    goals: ["senescence","longevity","anti-aging","senolytic","cellular","zombie cells","rejuvenation"],
+    dose: "Community protocol: 1 mg/day sub-Q (conservative start); some protocols use 2–3 mg every other day for 6 doses. No human clinical trial dose established.", timing: "5 days on / 2 days off during a course", cycle: "2-week course, then 3–6 months rest. Repeat 2–3x/year.",
+    mechanism: "D-amino acid retro-inverso peptide that disrupts the FOXO4-p53 protein interaction inside senescent 'zombie' cells. This interaction is what keeps senescent cells alive despite their damage. Disrupting it triggers selective apoptosis (programmed death) in senescent cells while leaving healthy cells unaffected.",
+    notes: "Developed by Peter de Keizer (Utrecht University). Published in Cell (2017): restored fur density, fitness, and kidney function in fast-aged mice. One of the first senolytics with high selectivity for senescent cells. Pulsed 'hit-and-clear' dosing schedule allows immune system time to clear debris between sessions. No human clinical trials as of 2026. Represents the cutting edge of longevity medicine.",
+    sides: "Unknown in humans (no clinical trials). Theoretical: senescent cells play a role in wound healing, so clearance could temporarily slow healing. High cost. Sourcing quality is a concern.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=FOXO4-DRI+senescent+cells+senolytic+p53",
     examine: ""
   },
   "SS-31 (Elamipretide)": {
@@ -3909,10 +3936,7 @@ function showRefCard(name) {
       <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
         ${info.goals.slice(0,6).map(g=>`<span style="padding:4px 10px;background:var(--surface2);border-radius:20px;font-size:11px;color:var(--text2);">${g}</span>`).join('')}
       </div>
-      ${(info.pubmed || info.examine) ? `<div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${info.pubmed ? `<a href="${info.pubmed}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;text-decoration:none;font-weight:600;">🔬 PubMed Studies</a>` : ''}
-        ${info.examine ? `<a href="${info.examine}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;text-decoration:none;font-weight:600;">📊 Examine.com</a>` : ''}
-      </div>` : ''}
+      
     </div>`;
 }
 
@@ -4356,6 +4380,140 @@ function openAcctPanel() { document.getElementById('acct-panel').classList.add('
 function closeAcctPanel() { document.getElementById('acct-panel').classList.remove('open'); document.getElementById('acct-panel-overlay').classList.remove('open'); }
 
 document.addEventListener('DOMContentLoaded', () => initSupabase());
+
+// ─────────────────────────────────────────────────────────
+// PEPTIDE COMBOBOX
+// ─────────────────────────────────────────────────────────
+let _comboData = []; // flat: [{name, category}]
+let _comboActive = {}; // {id: selectedIndex}
+let _comboCloseTimer = {};
+
+function initCombos() {
+  _comboData = [];
+  for (const cat of PEPTIDE_CATEGORIES) {
+    for (const p of cat.peptides) {
+      _comboData.push({ name: p.name, category: cat.label });
+    }
+  }
+}
+
+function renderComboDropdown(id, query) {
+  const dd = document.getElementById(id + '-dropdown');
+  if (!dd) return;
+  const q = (query || '').toLowerCase().trim();
+  let html = '';
+  let count = 0;
+  let lastCat = '';
+
+  const filtered = q
+    ? _comboData.filter(p => p.name.toLowerCase().includes(q))
+    : _comboData;
+
+  for (const p of filtered) {
+    if (p.category !== lastCat) {
+      if (!q) { // only show category headers when not searching
+        html += `<div class="combo-group-label">${p.category}</div>`;
+      }
+      lastCat = p.category;
+    }
+    html += `<div class="combo-option" data-val="${p.name}" onmousedown="selectCombo(event,'${id}')">${p.name}</div>`;
+    count++;
+  }
+
+  if (count === 0) {
+    html = '<div class="combo-empty">No matches found</div>';
+  }
+  dd.innerHTML = html;
+  _comboActive[id] = -1;
+}
+
+function openCombo(id) {
+  clearTimeout(_comboCloseTimer[id]);
+  const input = document.getElementById(id + '-input');
+  const dd = document.getElementById(id + '-dropdown');
+  renderComboDropdown(id, input ? input.value : '');
+  if (dd) dd.classList.add('open');
+}
+
+function closeCombo(id) {
+  const dd = document.getElementById(id + '-dropdown');
+  if (dd) dd.classList.remove('open');
+}
+
+function closeComboDelay(id) {
+  _comboCloseTimer[id] = setTimeout(() => closeCombo(id), 200);
+}
+
+function toggleCombo(id) {
+  const dd = document.getElementById(id + '-dropdown');
+  if (dd && dd.classList.contains('open')) {
+    closeCombo(id);
+  } else {
+    document.getElementById(id + '-input').focus();
+    openCombo(id);
+  }
+}
+
+function filterCombo(id) {
+  const input = document.getElementById(id + '-input');
+  const hidden = document.getElementById(id);
+  // Clear selected value when user types
+  if (hidden) hidden.value = '';
+  renderComboDropdown(id, input ? input.value : '');
+  const dd = document.getElementById(id + '-dropdown');
+  if (dd) dd.classList.add('open');
+}
+
+function selectCombo(e, id) {
+  e.preventDefault();
+  const val = e.currentTarget.getAttribute('data-val');
+  const hidden = document.getElementById(id);
+  const input = document.getElementById(id + '-input');
+  if (hidden) hidden.value = val;
+  if (input) input.value = val;
+  closeCombo(id);
+  // Fire the existing onChange handlers
+  if (id === 'm-peptide') onModalPeptideChange();
+  if (id === 'ref-peptide') onRefDropdown();
+}
+
+function comboKey(e, id) {
+  const dd = document.getElementById(id + '-dropdown');
+  if (!dd || !dd.classList.contains('open')) return;
+  const opts = dd.querySelectorAll('.combo-option');
+  let idx = _comboActive[id] || -1;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    idx = Math.min(idx + 1, opts.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    idx = Math.max(idx - 1, 0);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (idx >= 0 && opts[idx]) opts[idx].dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
+    return;
+  } else if (e.key === 'Escape') {
+    closeCombo(id);
+    return;
+  }
+
+  opts.forEach((o,i) => o.classList.toggle('combo-active', i === idx));
+  if (opts[idx]) opts[idx].scrollIntoView({ block: 'nearest' });
+  _comboActive[id] = idx;
+}
+
+function setComboValue(id, val) {
+  const hidden = document.getElementById(id);
+  const input = document.getElementById(id + '-input');
+  if (hidden) hidden.value = val || '';
+  if (input) input.value = val || '';
+}
+
+function clearCombo(id) {
+  setComboValue(id, '');
+}
+
 </script>
 
 <!-- ACCOUNT PANEL -->
