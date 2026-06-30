@@ -2104,7 +2104,7 @@ function sendCalcToSchedule() {
       // Match calc unit
       document.querySelectorAll('#m-dose-unit .toggle-btn').forEach(b => b.classList.remove('active'));
       const targetUnit = doseUnit === 'mcg' ? 'mcg' : 'mg';
-      const unitBtn = document.querySelector(\`#m-dose-unit [data-val="\${targetUnit}"]\`);
+      const unitBtn = document.querySelector('#m-dose-unit [data-val="' + targetUnit + '"]');
       if (unitBtn) { unitBtn.classList.add('active'); modalDoseUnit = targetUnit; }
     }
 
@@ -3615,4 +3615,4 @@ document.addEventListener('DOMContentLoaded', () => initSupabase());
 
 </body>
 </html>
-                   
+                   
