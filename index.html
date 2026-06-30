@@ -2089,7 +2089,8 @@ function sendCalcToSchedule() {
   }
 
   // Switch to scheduler tab and open modal
-  switchTab('scheduler');
+  const schedBtn = document.querySelector('.tab-btn[onclick*="scheduler"]');
+  if (schedBtn) switchTab('scheduler', schedBtn);
 
   setTimeout(() => {
     openModal();
@@ -3615,4 +3616,4 @@ document.addEventListener('DOMContentLoaded', () => initSupabase());
 
 </body>
 </html>
-                   
+                   
