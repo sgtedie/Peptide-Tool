@@ -1174,6 +1174,7 @@ select {
     <div style="text-align:center; margin-top:10px;">
       <button class="btn-clear" onclick="clearCalc()">Clear / Reset</button>
     </div>
+    <button onclick="sendCalcToSchedule()" style="width:100%;margin-top:10px;padding:12px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.03em;">📅 Add to Schedule</button>
   </div>
 
   <div id="c-empty" class="empty-state">
@@ -2075,6 +2076,67 @@ function clearCalc() {
     .forEach(id => document.getElementById(id).value = '');
   document.getElementById('c-results').style.display = 'none';
   document.getElementById('c-empty').style.display = 'block';
+}
+
+function sendCalcToSchedule() {
+  // Grab values from calculator
+  const selEl = document.getElementById('c-peptide');
+  const customEl = document.getElementById('c-custom-name');
+  const peptideName = selEl && selEl.value === 'Custom / Other'
+    ? (customEl ? customEl.value.trim() : '')
+    : (selEl ? selEl.value : '');
+  const doseRaw = parseFloat(document.getElementById('c-dose').value);
+  const vial = parseFloat(document.getElementById('c-vial').value);
+  const bac = parseFloat(document.getElementById('c-bac').value);
+
+  if (!peptideName || !doseRaw) {
+    showToast('⚠️ Fill in the calculator first');
+    return;
+  }
+
+  // Switch to scheduler tab
+  switchTab('scheduler');
+
+  // Open the add peptide modal pre-filled
+  setTimeout(() => {
+    openModal();
+    // Set peptide name
+    const mSel = document.getElementById('m-peptide');
+    if (mSel) {
+      // Try to match existing option
+      const opt = Array.from(mSel.options).find(o => o.value === peptideName);
+      if (opt) {
+        mSel.value = peptideName;
+      } else {
+        mSel.value = 'Custom / Other';
+      }
+      onModalPeptideChange();
+      // Set custom name if needed
+      const mCustom = document.getElementById('m-custom-name');
+      if (mSel.value === 'Custom / Other' && mCustom) mCustom.value = peptideName;
+    }
+    // Set dose
+    const mDose = document.getElementById('m-dose');
+    if (mDose) {
+      // Match calc dose unit
+      mDose.value = doseRaw;
+      // Set unit to match calculator
+      const mgBtn = document.querySelector('#m-dose-unit [data-val="mg"]');
+      const mcgBtn = document.querySelector('#m-dose-unit [data-val="mcg"]');
+      if (doseUnit === 'mcg') {
+        if (mcgBtn) { document.querySelectorAll('#m-dose-unit .toggle-btn').forEach(b=>b.classList.remove('active')); mcgBtn.classList.add('active'); modalDoseUnit = 'mcg'; }
+      } else {
+        if (mgBtn) { document.querySelectorAll('#m-dose-unit .toggle-btn').forEach(b=>b.classList.remove('active')); mgBtn.classList.add('active'); modalDoseUnit = 'mg'; }
+      }
+    }
+    // Set vial + BAC
+    const mVial = document.getElementById('m-vial');
+    const mBac = document.getElementById('m-bac');
+    if (mVial && vial) mVial.value = vial;
+    if (mBac && bac) mBac.value = bac;
+    updateModalUnits();
+    showToast('✓ Loaded into scheduler — set timing then save');
+  }, 300);
 }
 
 // ─────────────────────────────────────────────────────────
@@ -3573,4 +3635,4 @@ document.addEventListener('DOMContentLoaded', () => initSupabase());
 
 </body>
 </html>
-                   
+                   
