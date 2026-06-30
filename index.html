@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Peptide Tools">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0d0d14">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // Generate app icon for home screen
 (function() {
@@ -720,6 +721,239 @@ select {
 }
 .print-btn:active { opacity: 0.7; }
 
+/* ─── ACCOUNT BUTTON ─────────────────────────────── */
+.acct-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.18s;
+  position: relative;
+}
+.acct-btn.logged-in {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+.acct-btn .sync-dot {
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  display: none;
+}
+.acct-btn.syncing .sync-dot { display: block; background: var(--yellow); }
+.acct-btn.synced .sync-dot  { display: block; background: var(--accent); }
+
+/* ─── AUTH MODAL ─────────────────────────────────── */
+.auth-modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.auth-modal-overlay.open { display: flex; }
+.auth-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 24px;
+  width: 100%; max-width: 380px;
+  animation: modalSlideUp 0.22s ease;
+}
+@keyframes modalSlideUp {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.auth-modal-title {
+  font-size: 20px; font-weight: 800;
+  text-align: center; margin-bottom: 6px;
+  background: linear-gradient(130deg, #059669 30%, var(--teal));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.auth-modal-subtitle {
+  font-size: 13px; color: var(--text2);
+  text-align: center; margin-bottom: 22px; line-height: 1.5;
+}
+.auth-tab-row {
+  display: flex; gap: 6px; margin-bottom: 20px;
+}
+.auth-tab {
+  flex: 1; padding: 9px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text2); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+}
+.auth-tab.active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+.auth-field { margin-bottom: 14px; }
+.auth-field label { font-size: 12px; color: var(--text2); font-weight: 600; margin-bottom: 6px; display: block; }
+.auth-field input {
+  width: 100%; padding: 12px 14px;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-size: 15px; outline: none; transition: border-color 0.15s;
+}
+.auth-field input:focus { border-color: var(--accent); }
+.auth-submit {
+  width: 100%; padding: 13px;
+  background: var(--accent); border: none; border-radius: var(--radius-sm);
+  color: white; font-size: 15px; font-weight: 800;
+  cursor: pointer; margin-top: 4px;
+  transition: opacity 0.15s;
+}
+.auth-submit:hover { opacity: 0.9; }
+.auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.auth-error {
+  background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  color: var(--red); font-size: 13px; margin-bottom: 14px; display: none;
+}
+.auth-success {
+  background: var(--accent-dim); border: 1px solid rgba(16,185,129,0.3);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  color: var(--accent); font-size: 13px; margin-bottom: 14px; display: none;
+}
+.auth-cancel-btn {
+  width: 100%; padding: 10px; margin-top: 10px;
+  background: none; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text2);
+  font-size: 14px; cursor: pointer;
+}
+
+/* ─── ACCOUNT PANEL ──────────────────────────────── */
+.acct-panel-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 990;
+}
+.acct-panel-overlay.open { display: block; }
+.acct-panel {
+  position: fixed; top: 0; right: -340px;
+  width: 320px; height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  z-index: 995;
+  transition: right 0.25s ease;
+  display: flex; flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+}
+.acct-panel.open { right: 0; }
+.acct-panel-header {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.acct-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--accent-dim); border: 2px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: var(--accent);
+  flex-shrink: 0;
+}
+.acct-user-info { flex: 1; min-width: 0; }
+.acct-user-email {
+  font-size: 13px; font-weight: 700; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.acct-user-sub { font-size: 11px; color: var(--accent); margin-top: 2px; }
+.acct-panel-close {
+  background: none; border: none; color: var(--text2);
+  font-size: 22px; cursor: pointer; line-height: 1; padding: 4px;
+}
+.acct-section {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.acct-section-title {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text2); margin-bottom: 12px;
+}
+.profile-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  margin-bottom: 8px; cursor: pointer;
+  transition: all 0.15s; background: var(--surface2);
+}
+.profile-card.active-profile {
+  border-color: var(--accent); background: var(--accent-dim);
+}
+.profile-card-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border); flex-shrink: 0;
+}
+.profile-card.active-profile .profile-card-dot { background: var(--accent); }
+.profile-card-name { flex: 1; font-size: 14px; font-weight: 700; }
+.profile-card-badge {
+  font-size: 10px; font-weight: 700; color: var(--accent);
+  background: var(--accent-dim); border-radius: 10px; padding: 2px 7px;
+}
+.profile-delete-btn {
+  background: none; border: none; color: var(--text2);
+  font-size: 16px; cursor: pointer; padding: 2px 4px;
+  line-height: 1;
+}
+.profile-delete-btn:hover { color: var(--red); }
+.add-profile-btn {
+  width: 100%; padding: 10px;
+  background: none; border: 1.5px dashed rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm); color: var(--text2);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.15s;
+}
+.add-profile-btn:hover { border-color: var(--accent); color: var(--accent); }
+.new-profile-row {
+  display: none; gap: 8px; margin-top: 8px;
+}
+.new-profile-row.open { display: flex; }
+.new-profile-row input {
+  flex: 1; padding: 9px 12px;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 14px;
+  outline: none;
+}
+.new-profile-row input:focus { border-color: var(--accent); }
+.new-profile-row button {
+  padding: 9px 14px; background: var(--accent); border: none;
+  border-radius: var(--radius-sm); color: white; font-weight: 700;
+  font-size: 13px; cursor: pointer;
+}
+.acct-signout-btn {
+  width: 100%; padding: 12px; margin: 16px 18px;
+  width: calc(100% - 36px);
+  background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25);
+  border-radius: var(--radius-sm); color: var(--red);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: all 0.15s;
+}
+.acct-signout-btn:hover { background: rgba(248,113,113,0.18); }
+.sync-status-bar {
+  padding: 8px 18px; font-size: 12px; color: var(--text2);
+  display: flex; align-items: center; gap: 6px;
+}
+.sync-status-bar .sync-dot-bar {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text2);
+}
+.sync-status-bar.synced .sync-dot-bar { background: var(--accent); }
+.sync-status-bar.syncing .sync-dot-bar { background: var(--yellow); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
 @media print {
   body {
     background: white !important;
@@ -799,7 +1033,15 @@ select {
       </svg>
       Peptide Tools
     </div>
-    <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--yellow); background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.25); border-radius:20px; padding:3px 9px; white-space:nowrap;">⚠️ Research Only</span>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--yellow); background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.25); border-radius:20px; padding:3px 9px; white-space:nowrap;">⚠️ Research Only</span>
+      <button class="acct-btn" id="acct-btn" onclick="onAcctBtnClick()" title="Account">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        <span class="sync-dot"></span>
+      </button>
+    </div>
   </div>
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('calc', this)"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline;vertical-align:-1px;margin-right:4px"><rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><rect x="2.5" y="2.5" width="9" height="2.8" rx="0.6" fill="currentColor" opacity="0.85"/><rect x="2.5" y="7" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="5.75" y="7" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="9" y="7" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="2.5" y="10" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="5.75" y="10" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/><rect x="9" y="10" width="2.5" height="2" rx="0.5" fill="currentColor" opacity="0.7"/></svg>Calculator</button>
@@ -1768,6 +2010,7 @@ function calcUpdate() {
 
   resEl.style.display = 'block';
   emptyEl.style.display = 'none';
+  saveCalcHistory('dose', { vial, bac, dose: doseRaw, doseUnit, price });
 }
 
 function clearCalc() {
@@ -1976,11 +2219,13 @@ function addPeptide() {
     renderPeptideList();
     closeModal();
     document.getElementById('s-output').innerHTML = '';
+    scheduleSyncStack();
     showToast(`✓ ${name} updated`);
   } else {
     peptides.push({ id: Date.now(), ...peptideData });
     renderPeptideList();
     closeModal();
+    scheduleSyncStack();
     showToast(`✓ ${name} added`);
   }
 }
@@ -1989,6 +2234,7 @@ function removePeptide(id) {
   peptides = peptides.filter(p => p.id !== id);
   renderPeptideList();
   document.getElementById('s-output').innerHTML = '';
+  scheduleSyncStack();
 }
 
 function cycleLabel(cycle) {
@@ -3109,6 +3355,377 @@ function fmtDoseDisplay(p) {
 function fmtU(n) {
   return +n.toFixed(1) === Math.round(n) ? Math.round(n) : n.toFixed(1);
 }
+
+// ═════════════════════════════════════════════════════════════
+// SUPABASE — AUTH & CLOUD SYNC
+// ═════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://yszrprzvysnsjoprsqsp.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzenJwcnp2eXNuc2pvcHJzcXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjkwNzksImV4cCI6MjA5ODQwNTA3OX0.wWJQcaDptft5PYaxRIoZfXXvm_SkjjFyp4l9b1bCf6A';
+
+let _sb = null;
+let currentUser = null;
+let currentProfile = null;
+let userProfiles  = [];
+let syncTimer     = null;
+
+function getSB() {
+  if (!_sb) _sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+  return _sb;
+}
+
+async function initSupabase() {
+  const sb = getSB();
+  // Restore existing session
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) await onAuthChange(session);
+  // Listen for future changes
+  sb.auth.onAuthStateChange((_event, session) => onAuthChange(session));
+}
+
+async function onAuthChange(session) {
+  currentUser = session ? session.user : null;
+  if (currentUser) {
+    updateAccountUI(true);
+    await loadProfiles();
+  } else {
+    currentProfile = null;
+    userProfiles   = [];
+    updateAccountUI(false);
+    setSyncStatus('');
+  }
+}
+
+// ── Profiles ──────────────────────────────────────────────
+async function loadProfiles() {
+  const sb = getSB();
+  const { data, error } = await sb.from('profiles')
+    .select('*').eq('user_id', currentUser.id).order('created_at');
+  if (error) { console.error('loadProfiles:', error); return; }
+
+  userProfiles = data || [];
+  if (userProfiles.length === 0) {
+    // Create a default profile for new users
+    await createProfile('Me', true);
+  } else {
+    // Restore last active profile from localStorage
+    const lastId = localStorage.getItem('pt_profile');
+    currentProfile = userProfiles.find(p => p.id === lastId) || userProfiles[0];
+    await loadStack();
+    renderAccountPanel();
+  }
+}
+
+async function createProfile(name, isDefault = false) {
+  const sb = getSB();
+  const { data, error } = await sb.from('profiles').insert({
+    user_id: currentUser.id, name, is_default: isDefault
+  }).select().single();
+  if (error) { showToast('⚠️ Could not create profile'); return; }
+  userProfiles.push(data);
+  currentProfile = data;
+  localStorage.setItem('pt_profile', data.id);
+  await loadStack();
+  renderAccountPanel();
+}
+
+async function deleteProfile(profileId) {
+  if (userProfiles.length <= 1) { showToast('⚠️ You need at least one profile'); return; }
+  if (!confirm('Delete this profile and all its data?')) return;
+  const sb = getSB();
+  await sb.from('profiles').delete().eq('id', profileId);
+  userProfiles = userProfiles.filter(p => p.id !== profileId);
+  if (currentProfile?.id === profileId) {
+    currentProfile = userProfiles[0];
+    localStorage.setItem('pt_profile', currentProfile.id);
+    await loadStack();
+  }
+  renderAccountPanel();
+  showToast('Profile deleted');
+}
+
+async function switchProfile(profileId) {
+  if (currentProfile?.id === profileId) { closeAccountPanel(); return; }
+  currentProfile = userProfiles.find(p => p.id === profileId);
+  localStorage.setItem('pt_profile', profileId);
+  await loadStack();
+  renderAccountPanel();
+  closeAccountPanel();
+  showToast(`✓ Switched to ${currentProfile.name}`);
+}
+
+// ── Stack Sync ──────────────────────────────────────────
+async function loadStack() {
+  if (!currentUser || !currentProfile) return;
+  setSyncStatus('syncing');
+  const sb = getSB();
+  const { data } = await sb.from('peptide_stacks')
+    .select('peptides').eq('profile_id', currentProfile.id).single();
+  if (data && data.peptides) {
+    peptides = data.peptides;
+    renderPeptideList();
+    document.getElementById('s-output').innerHTML = '';
+  } else {
+    peptides = [];
+    renderPeptideList();
+  }
+  setSyncStatus('synced');
+}
+
+function scheduleSyncStack() {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncStack, 800);
+  setSyncStatus('syncing');
+}
+
+async function syncStack() {
+  if (!currentUser || !currentProfile) return;
+  setSyncStatus('syncing');
+  const sb = getSB();
+  // Upsert by profile_id
+  const { error } = await sb.from('peptide_stacks').upsert({
+    profile_id: currentProfile.id,
+    user_id:    currentUser.id,
+    peptides:   peptides,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'profile_id' });
+  if (error) { setSyncStatus(''); console.error('syncStack:', error); return; }
+  setSyncStatus('synced');
+}
+
+// ── Calc History ─────────────────────────────────────────
+async function saveCalcHistory(type, inputs) {
+  if (!currentUser) return;
+  const sb = getSB();
+  // Keep only last 20 entries per type
+  await sb.from('calc_history').insert({ user_id: currentUser.id, calc_type: type, inputs });
+}
+
+// ── Auth Actions ─────────────────────────────────────────
+async function doSignUp() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  const pass2 = document.getElementById('auth-pass2').value;
+  if (!email || !pass) { showAuthError('Please fill in all fields'); return; }
+  if (pass !== pass2) { showAuthError('Passwords do not match'); return; }
+  if (pass.length < 6) { showAuthError('Password must be at least 6 characters'); return; }
+  setAuthLoading(true);
+  const sb = getSB();
+  const { error } = await sb.auth.signUp({ email, password: pass });
+  setAuthLoading(false);
+  if (error) { showAuthError(error.message); return; }
+  showAuthSuccess('Account created! Check your email to confirm, then log in.');
+}
+
+async function doSignIn() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  if (!email || !pass) { showAuthError('Please enter your email and password'); return; }
+  setAuthLoading(true);
+  const sb = getSB();
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  setAuthLoading(false);
+  if (error) { showAuthError(error.message); return; }
+  closeAuthModal();
+  showToast('✓ Signed in — your data is syncing');
+}
+
+async function doSignOut() {
+  const sb = getSB();
+  await sb.auth.signOut();
+  peptides = [];
+  renderPeptideList();
+  document.getElementById('s-output').innerHTML = '';
+  closeAccountPanel();
+  showToast('Signed out');
+}
+
+// ── UI Helpers ───────────────────────────────────────────
+function onAcctBtnClick() {
+  if (currentUser) openAccountPanel();
+  else openAuthModal('login');
+}
+
+function openAuthModal(tab) {
+  document.getElementById('auth-modal').classList.add('open');
+  switchAuthTab(tab || 'login');
+  clearAuthMessages();
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.remove('open');
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('auth-tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('auth-tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('auth-login-form').style.display  = tab === 'login'  ? 'block' : 'none';
+  document.getElementById('auth-signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+  clearAuthMessages();
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('auth-success').style.display = 'none';
+}
+function showAuthSuccess(msg) {
+  const el = document.getElementById('auth-success');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('auth-error').style.display = 'none';
+}
+function clearAuthMessages() {
+  document.getElementById('auth-error').style.display = 'none';
+  document.getElementById('auth-success').style.display = 'none';
+}
+function setAuthLoading(on) {
+  document.querySelectorAll('.auth-submit').forEach(b => b.disabled = on);
+}
+
+function openAccountPanel() {
+  renderAccountPanel();
+  document.getElementById('acct-panel-overlay').classList.add('open');
+  document.getElementById('acct-panel').classList.add('open');
+}
+function closeAccountPanel() {
+  document.getElementById('acct-panel-overlay').classList.remove('open');
+  document.getElementById('acct-panel').classList.remove('open');
+}
+
+function renderAccountPanel() {
+  // Avatar initial
+  const initial = (currentUser?.email || 'U')[0].toUpperCase();
+  document.getElementById('acct-avatar').textContent = initial;
+  document.getElementById('acct-email').textContent = currentUser?.email || '';
+  document.getElementById('acct-profiles-list').innerHTML = userProfiles.map(p => `
+    <div class="profile-card ${p.id === currentProfile?.id ? 'active-profile' : ''}" onclick="switchProfile('${p.id}')">
+      <div class="profile-card-dot"></div>
+      <div class="profile-card-name">${escHtml(p.name)}</div>
+      ${p.id === currentProfile?.id ? '<span class="profile-card-badge">Active</span>' : ''}
+      ${userProfiles.length > 1 ? `<button class="profile-delete-btn" onclick="event.stopPropagation();deleteProfile('${p.id}')" title="Delete">×</button>` : ''}
+    </div>
+  `).join('');
+  // Show/hide Add Profile button
+  document.getElementById('add-profile-btn').style.display =
+    userProfiles.length < 3 ? 'block' : 'none';
+}
+
+function updateAccountUI(loggedIn) {
+  const btn = document.getElementById('acct-btn');
+  btn.classList.toggle('logged-in', loggedIn);
+}
+
+function setSyncStatus(status) {
+  const btn = document.getElementById('acct-btn');
+  btn.classList.remove('syncing', 'synced');
+  if (status) btn.classList.add(status);
+  const bar = document.getElementById('sync-status-bar');
+  bar.className = 'sync-status-bar ' + status;
+  bar.querySelector('.sync-label').textContent =
+    status === 'syncing' ? 'Syncing…' :
+    status === 'synced'  ? 'All changes saved' : '';
+}
+
+function toggleAddProfile() {
+  const row = document.getElementById('new-profile-row');
+  row.classList.toggle('open');
+  if (row.classList.contains('open')) document.getElementById('new-profile-input').focus();
+}
+
+async function submitNewProfile() {
+  const name = document.getElementById('new-profile-input').value.trim();
+  if (!name) return;
+  document.getElementById('new-profile-input').value = '';
+  document.getElementById('new-profile-row').classList.remove('open');
+  await createProfile(name);
+  showToast(`✓ Profile "${name}" created`);
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded', () => initSupabase());
 </script>
+
+<!-- ── AUTH MODAL ─────────────────────────────────── -->
+<div class="auth-modal-overlay" id="auth-modal" onclick="if(event.target===this)closeAuthModal()">
+  <div class="auth-modal">
+    <div class="auth-modal-title">🧪 Peptide Tools</div>
+    <div class="auth-modal-subtitle">Save your stack & schedules across devices.<br>Free account — no credit card needed.</div>
+
+    <div class="auth-tab-row">
+      <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">Log In</button>
+      <button class="auth-tab" id="auth-tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
+    <div id="auth-success" class="auth-success"></div>
+
+    <!-- LOGIN -->
+    <div id="auth-login-form">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" onkeydown="if(event.key==='Enter')doSignIn()">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()">
+      </div>
+      <button class="auth-submit" onclick="doSignIn()">Log In →</button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="auth-signup-form" style="display:none">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="auth-email-su" placeholder="you@example.com" autocomplete="email"
+          oninput="document.getElementById('auth-email').value=this.value">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="auth-pass-su" placeholder="Min. 6 characters" autocomplete="new-password"
+          oninput="document.getElementById('auth-pass').value=this.value">
+      </div>
+      <div class="auth-field">
+        <label>Confirm Password</label>
+        <input type="password" id="auth-pass2" placeholder="Re-enter password" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignUp()">
+      </div>
+      <button class="auth-submit" onclick="doSignUp()">Create Free Account →</button>
+    </div>
+
+    <button class="auth-cancel-btn" onclick="closeAuthModal()">Maybe later</button>
+  </div>
+</div>
+
+<!-- ── ACCOUNT PANEL ──────────────────────────────── -->
+<div class="acct-panel-overlay" id="acct-panel-overlay" onclick="closeAccountPanel()"></div>
+<div class="acct-panel" id="acct-panel">
+  <div class="acct-panel-header">
+    <div class="acct-avatar" id="acct-avatar">U</div>
+    <div class="acct-user-info">
+      <div class="acct-user-email" id="acct-email"></div>
+      <div class="acct-user-sub">Free Account</div>
+    </div>
+    <button class="acct-panel-close" onclick="closeAccountPanel()">×</button>
+  </div>
+
+  <div class="acct-section">
+    <div class="acct-section-title">My Profiles <span style="color:var(--text2);font-weight:400;">(up to 3)</span></div>
+    <div id="acct-profiles-list"></div>
+    <button class="add-profile-btn" id="add-profile-btn" onclick="toggleAddProfile()">+ Add Profile</button>
+    <div class="new-profile-row" id="new-profile-row">
+      <input type="text" id="new-profile-input" placeholder="Profile name (e.g. John)" maxlength="30"
+        onkeydown="if(event.key==='Enter')submitNewProfile()">
+      <button onclick="submitNewProfile()">Add</button>
+    </div>
+  </div>
+
+  <div id="sync-status-bar" class="sync-status-bar">
+    <div class="sync-dot-bar"></div>
+    <span class="sync-label"></span>
+  </div>
+
+  <div style="padding: 0 18px; margin-top: auto;">
+    <button class="acct-signout-btn" onclick="doSignOut()">Sign Out</button>
+  </div>
+</div>
+
 </body>
 </html>
