@@ -3073,4 +3073,221 @@ function answerQuestion() {
   if (!found) {
     const shorts = {
       'bpc': 'BPC-157', 'tb-500': 'TB-500 (Thymosin Beta-4)', 'tb500': 'TB-500 (Thymosin Beta-4)',
-      'cjc': 'CJC-1
+      'cjc': 'CJC-1      'cjc': 'CJC-1295 (no DAC)', 'ipamorelin': 'Ipamorelin', 'ghrp2': 'GHRP-2', 'ghrp6': 'GHRP-6',
+      'igf': 'IGF-1 LR3', 'igf1': 'IGF-1 LR3', 'sema': 'Semaglutide (GLP-1S)', 'ozempic': 'Semaglutide (GLP-1S)',
+      'tirz': 'Tirzepatide (GLP-1T)', 'mounjaro': 'Tirzepatide (GLP-1T)',
+      'aod': 'AOD 9604', 'epithalon': 'Epithalon', 'ghk': 'GHK-Cu (Copper Peptide)',
+      'nad': 'NAD+', 'ta1': 'Thymosin Alpha-1 (TA1)', 'pt141': 'PT-141 (Bremelanotide)',
+      'mt2': 'Melanotan II (MT-2)', 'melanotan': 'Melanotan II (MT-2)',
+      'hcg': 'HCG', 'motsc': 'MOTS-C', 'sermorelin': 'Sermorelin',
+    };
+    for (const [k,v] of Object.entries(shorts)) {
+      if (q.includes(k)) { found = v; break; }
+    }
+  }
+
+  let html = '';
+  if (found && PEPTIDE_INFO[found]) {
+    const info = PEPTIDE_INFO[found];
+    const se = SIDE_EFFECTS[found] || [];
+    if (q.match(/side effect|risk|danger|safe|harm|adverse/)) {
+      html = `<strong>${found} — Side Effects:</strong><ul>${se.map(s=>`<li>${s}</li>`).join('')}</ul>`;
+    } else if (q.match(/dose|dosing|how much|mg|mcg|amount/)) {
+      html = `<strong>${found} — Dosing:</strong><br>${info.dose || 'See reference tab for dosing details.'}`;
+    } else if (q.match(/what is|about|info|overview|tell me/)) {
+      html = `<strong>${found}</strong><br>${info.desc || ''}<br><br><em>Typical dose:</em> ${info.dose || 'N/A'}<br><em>Frequency:</em> ${info.freq || 'N/A'}`;
+    } else {
+      html = `<strong>${found}</strong><br>${info.desc || ''}<br><br><em>Dose:</em> ${info.dose || 'N/A'} &nbsp;|&nbsp; <em>Freq:</em> ${info.freq || 'N/A'}<br><br><strong>Side Effects:</strong><ul>${se.map(s=>`<li>${s}</li>`).join('')}</ul>`;
+    }
+  } else {
+    // Generic keyword search
+    const kw = Object.entries(QA_KEYWORDS).find(([k])=>q.includes(k));
+    if (kw) {
+      const matches = Object.entries(PEPTIDE_INFO).filter(([n,v])=>
+        kw[1].some(tag => (v.tags||[]).includes(tag))
+      );
+      if (matches.length) {
+        html = `<strong>Peptides for "${kw[0]}":</strong><ul>${matches.slice(0,8).map(([n])=>`<li>${n}</li>`).join('')}</ul>`;
+      }
+    }
+    if (!html) html = `<span style="color:var(--text2)">No specific info found. Try asking about a peptide by name, e.g. "What are the side effects of BPC-157?" or "How do I dose Ipamorelin?"</span>`;
+  }
+  answerEl.innerHTML = html;
+  answerEl.style.display = 'block';
+}
+
+// ─────────────────────────────────────────────────────────
+// SUPABASE AUTH + SYNC
+// ─────────────────────────────────────────────────────────
+const SUPA_URL = 'https://yszrprzvysnsjoprsqsp.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzenJwcnp2eXNuc2pvcHJzcXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjkwNzksImV4cCI6MjA5ODQwNTA3OX0.wWJQcaDptft5PYaxRIoZfXXvm_SkjjFyp4l9b1bCf6A';
+
+let supabase, currentUser, currentProfile, profiles = [];
+let syncTimer = null;
+
+async function initSupabase() {
+  try {
+    supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+    const { data: { session } } = await supabase.auth.getSession();
+    await onAuthChange(session);
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      await onAuthChange(session);
+    });
+  } catch(e) {
+    console.error('Supabase init error:', e);
+  }
+}
+
+async function onAuthChange(session) {
+  currentUser = session ? session.user : null;
+  if (currentUser) {
+    document.getElementById('login-gate').classList.add('hidden');
+    updateAccountUI(true);
+    await loadProfiles();
+  } else {
+    document.getElementById('login-gate').classList.remove('hidden');
+    updateAccountUI(false);
+  }
+}
+
+function updateAccountUI(loggedIn) {
+  const btn = document.getElementById('acct-btn');
+  if (btn) btn.textContent = loggedIn ? '👤' : '🔑';
+  const signOutBtn = document.getElementById('acct-signout');
+  if (signOutBtn) signOutBtn.style.display = loggedIn ? '' : 'none';
+  const emailEl = document.getElementById('acct-email');
+  if (emailEl) emailEl.textContent = loggedIn ? (currentUser?.email || '') : '';
+}
+
+async function loadProfiles() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await supabase.from('profiles').select('*').eq('user_id', currentUser.id).order('created_at');
+    if (error) throw error;
+    profiles = data || [];
+    if (profiles.length === 0) {
+      // Create default profile
+      const { data: np } = await supabase.from('profiles').insert({ user_id: currentUser.id, name: 'Me', is_default: true }).select().single();
+      if (np) profiles = [np];
+    }
+    const saved = localStorage.getItem('lv_profile_id');
+    currentProfile = profiles.find(p => p.id === saved) || profiles.find(p => p.is_default) || profiles[0];
+    if (currentProfile) localStorage.setItem('lv_profile_id', currentProfile.id);
+    renderProfileUI();
+    await loadStack();
+  } catch(e) { console.error('loadProfiles error:', e); }
+}
+
+function renderProfileUI() {
+  const el = document.getElementById('profile-list');
+  if (!el) return;
+  el.innerHTML = profiles.map(p => `
+    <div class="profile-card ${p.id === currentProfile?.id ? 'active' : ''}" onclick="switchProfile('${p.id}')">
+      <span>${p.name}</span>${p.id === currentProfile?.id ? '<span style="color:var(--accent)">✓</span>' : ''}
+    </div>`).join('');
+  const addBtn = document.getElementById('add-profile-btn');
+  if (addBtn) addBtn.style.display = profiles.length >= 3 ? 'none' : '';
+}
+
+async function switchProfile(id) {
+  currentProfile = profiles.find(p => p.id === id);
+  if (currentProfile) { localStorage.setItem('lv_profile_id', currentProfile.id); renderProfileUI(); await loadStack(); }
+}
+
+async function addProfile() {
+  if (profiles.length >= 3) return showToast('Max 3 profiles per account');
+  const name = prompt('Profile name (e.g. "Mom", "Partner"):');
+  if (!name || !name.trim()) return;
+  try {
+    const { data, error } = await supabase.from('profiles').insert({ user_id: currentUser.id, name: name.trim(), is_default: false }).select().single();
+    if (error) throw error;
+    profiles.push(data);
+    await switchProfile(data.id);
+  } catch(e) { showToast('Error creating profile'); console.error(e); }
+}
+
+async function loadStack() {
+  if (!currentProfile) return;
+  try {
+    const { data } = await supabase.from('peptide_stacks').select('peptides').eq('profile_id', currentProfile.id).single();
+    if (data?.peptides) { peptides = data.peptides; renderPeptideList(); }
+  } catch(e) { console.error('loadStack error:', e); }
+}
+
+function scheduleSyncStack() {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncStack, 800);
+}
+
+async function syncStack() {
+  if (!currentUser || !currentProfile) return;
+  try {
+    await supabase.from('peptide_stacks').upsert({ profile_id: currentProfile.id, user_id: currentUser.id, peptides: peptides, updated_at: new Date().toISOString() }, { onConflict: 'profile_id' });
+  } catch(e) { console.error('syncStack error:', e); }
+}
+
+async function saveCalcHistory(type, inputs) {
+  if (!currentUser) return;
+  try {
+    await supabase.from('calc_history').insert({ user_id: currentUser.id, calc_type: type, inputs });
+  } catch(e) { console.error('saveCalcHistory error:', e); }
+}
+
+// Gate auth functions
+function switchGateTab(tab) {
+  document.getElementById('gate-login-form').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('gate-signup-form').style.display = tab === 'signup' ? '' : 'none';
+  document.getElementById('gate-tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('gate-tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('gate-error').textContent = '';
+  document.getElementById('gate-success').textContent = '';
+}
+
+async function doGateSignIn() {
+  const email = document.getElementById('gate-email').value.trim();
+  const pass  = document.getElementById('gate-pass').value;
+  const errEl = document.getElementById('gate-error');
+  const btn   = document.getElementById('gate-login-btn');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Please enter your email and password.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+    if (error) { errEl.textContent = error.message; }
+  } catch(e) { errEl.textContent = 'Sign in failed. Please try again.'; }
+  btn.disabled = false; btn.textContent = 'Log In →';
+}
+
+async function doGateSignUp() {
+  const email  = document.getElementById('gate-email-su').value.trim();
+  const pass   = document.getElementById('gate-pass-su').value;
+  const pass2  = document.getElementById('gate-pass2').value;
+  const errEl  = document.getElementById('gate-error');
+  const sucEl  = document.getElementById('gate-success');
+  const btn    = document.getElementById('gate-signup-btn');
+  errEl.textContent = ''; sucEl.textContent = '';
+  if (!email) { errEl.textContent = 'Please enter your email.'; return; }
+  if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+  if (pass !== pass2) { errEl.textContent = 'Passwords do not match.'; return; }
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  try {
+    const { error } = await supabase.auth.signUp({ email, password: pass });
+    if (error) { errEl.textContent = error.message; }
+    else { sucEl.textContent = 'Account created! Check your email to confirm, then log in.'; switchGateTab('login'); }
+  } catch(e) { errEl.textContent = 'Sign up failed. Please try again.'; }
+  btn.disabled = false; btn.textContent = 'Create Free Account →';
+}
+
+async function doSignOut() {
+  await supabase.auth.signOut();
+  currentUser = null; currentProfile = null; profiles = [];
+  closeAcctPanel();
+}
+
+function openAcctPanel() { document.getElementById('acct-panel').classList.add('open'); }
+function closeAcctPanel() { document.getElementById('acct-panel').classList.remove('open'); }
+
+document.addEventListener('DOMContentLoaded', () => initSupabase());
+</script>
+</body>
+</html>
