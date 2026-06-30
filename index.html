@@ -3209,7 +3209,7 @@ async function addProfile() {
 async function loadStack() {
   if (!currentProfile) return;
   try {
-    const { data } = await _supa.from('peptide_stacks').select('peptides').eq('profile_id', currentProfile.id).single();
+    const { data } = await _supa.from('peptide_stacks').select('peptides').eq('profile_id', currentProfile.id).maybeSingle();
     if (data?.peptides) { peptides = data.peptides; renderPeptideList(); }
   } catch(e) { console.error('loadStack error:', e); }
 }
@@ -3291,11 +3291,34 @@ function onAcctBtnClick() {
   if (currentUser) { openAcctPanel(); }
   else { document.getElementById('login-gate').classList.remove('hidden'); }
 }
-function openAcctPanel() { document.getElementById('acct-panel').classList.add('open'); }
-function closeAcctPanel() { document.getElementById('acct-panel').classList.remove('open'); }
+function openAcctPanel() { document.getElementById('acct-panel').classList.add('open'); document.getElementById('acct-panel-overlay').classList.add('open'); }
+function closeAcctPanel() { document.getElementById('acct-panel').classList.remove('open'); document.getElementById('acct-panel-overlay').classList.remove('open'); }
 
 document.addEventListener('DOMContentLoaded', () => initSupabase());
 </script>
+
+<!-- ACCOUNT PANEL -->
+<div class="acct-panel-overlay" id="acct-panel-overlay" onclick="closeAcctPanel()"></div>
+<div class="acct-panel" id="acct-panel">
+  <div class="acct-panel-header">
+    <div>
+      <div style="font-weight:800; font-size:16px;">Account</div>
+      <div id="acct-email" style="font-size:12px; color:var(--text2); margin-top:2px;"></div>
+    </div>
+    <button class="acct-panel-close" onclick="closeAcctPanel()">✕</button>
+  </div>
+
+  <div style="padding:16px;">
+    <div style="font-size:12px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Profiles</div>
+    <div id="profile-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+    <button id="add-profile-btn" onclick="addProfile()" style="width:100%; margin-top:10px; padding:9px; background:var(--accent-dim); border:1.5px dashed var(--accent); border-radius:8px; color:var(--accent); font-size:13px; font-weight:700; cursor:pointer;">+ Add Profile</button>
+  </div>
+
+  <div style="padding:0 16px 16px;">
+    <button id="acct-signout" onclick="doSignOut()" style="width:100%; padding:11px; background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.3); border-radius:8px; color:#f87171; font-size:14px; font-weight:700; cursor:pointer;">Sign Out</button>
+  </div>
+</div>
+
 </body>
 </html>
                    
