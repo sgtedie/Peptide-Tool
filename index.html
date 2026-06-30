@@ -1332,6 +1332,17 @@ select {
     </div>
 
     <button class="btn btn-primary" onclick="generateSchedule()">Generate Schedule →</button>
+    <button class="btn btn-secondary" onclick="saveSchedule()" style="margin-top:8px;">💾 Save This Schedule</button>
+  </div>
+
+  <div class="card" id="saved-schedules-card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+      Saved Schedules
+      <span id="saved-sched-count" style="font-size:11px;color:var(--text2);font-weight:400;"></span>
+    </div>
+    <div id="saved-sched-list">
+      <div style="color:var(--text2);font-size:13px;text-align:center;padding:12px 0;">No saved schedules yet.</div>
+    </div>
   </div>
 
   <div id="s-output"></div>
@@ -3263,10 +3274,93 @@ async function loadStack() {
     const { data } = await _supa.from('peptide_stacks').select('peptides').eq('profile_id', currentProfile.id).maybeSingle();
     peptides = data?.peptides || [];
     renderPeptideList();
+    await loadSavedSchedules();
     // Refresh schedule if one is currently displayed
     const schedOut = document.getElementById('schedule-output');
     if (schedOut && schedOut.innerHTML.trim()) generateSchedule();
   } catch(e) { console.error('loadStack error:', e); }
+}
+
+
+// ── Saved Schedules ───────────────────────────────────────
+async function saveSchedule() {
+  if (!currentUser) { showToast('Sign in to save schedules'); return; }
+  if (!peptides.length) { showToast('Add peptides first'); return; }
+  const name = prompt('Name this schedule (e.g. "Spring Cycle", "Cut Phase"):');
+  if (!name || !name.trim()) return;
+  const weeks = parseInt(document.getElementById('weeks-select')?.value) || 4;
+  const data = { peptides: JSON.parse(JSON.stringify(peptides)), weeks };
+  try {
+    const { error } = await _supa.from('saved_schedules').insert({
+      profile_id: currentProfile.id,
+      user_id: currentUser.id,
+      name: name.trim(),
+      weeks,
+      schedule_data: data
+    });
+    if (error) throw error;
+    showToast('✅ Schedule saved: ' + name.trim());
+    await loadSavedSchedules();
+  } catch(e) { console.error(e); showToast('Error saving schedule'); }
+}
+
+async function loadSavedSchedules() {
+  if (!currentUser || !currentProfile) return;
+  try {
+    const { data, error } = await _supa.from('saved_schedules')
+      .select('*').eq('profile_id', currentProfile.id).order('created_at', { ascending: false });
+    if (error) throw error;
+    renderSavedSchedules(data || []);
+  } catch(e) { console.error('loadSavedSchedules error:', e); }
+}
+
+function renderSavedSchedules(list) {
+  const el = document.getElementById('saved-sched-list');
+  const countEl = document.getElementById('saved-sched-count');
+  if (!el) return;
+  if (countEl) countEl.textContent = list.length ? list.length + ' saved' : '';
+  if (!list.length) {
+    el.innerHTML = '<div style="color:var(--text2);font-size:13px;text-align:center;padding:12px 0;">No saved schedules yet.</div>';
+    return;
+  }
+  el.innerHTML = list.map(s => `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:14px;">${s.name}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px;">${s.weeks || 4} weeks · ${(s.schedule_data?.peptides||[]).length} peptide${(s.schedule_data?.peptides||[]).length!==1?'s':''} · ${new Date(s.created_at).toLocaleDateString()}</div>
+      </div>
+      <button onclick="loadSchedule('${s.id}')" style="padding:6px 12px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;">Load</button>
+      <button onclick="deleteSchedule('${s.id}')" style="padding:6px 10px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:6px;color:#f87171;font-size:12px;cursor:pointer;">✕</button>
+    </div>`).join('');
+}
+
+async function loadSchedule(id) {
+  try {
+    const { data, error } = await _supa.from('saved_schedules').select('*').eq('id', id).single();
+    if (error || !data) throw error || new Error('Not found');
+    // Restore peptides from snapshot
+    peptides = data.schedule_data?.peptides || [];
+    // Set weeks
+    const weeksEl = document.getElementById('weeks-select');
+    if (weeksEl && data.weeks) { weeksEl.value = data.weeks; viewPeriod = data.weeks * 7; }
+    renderPeptideList();
+    // Show schedule config and generate
+    const cfg = document.getElementById('s-config');
+    if (cfg) cfg.style.display = '';
+    generateSchedule();
+    showToast('✅ Loaded: ' + data.name);
+    closeAcctPanel();
+  } catch(e) { console.error(e); showToast('Error loading schedule'); }
+}
+
+async function deleteSchedule(id) {
+  if (!confirm('Delete this saved schedule?')) return;
+  try {
+    const { error } = await _supa.from('saved_schedules').delete().eq('id', id);
+    if (error) throw error;
+    showToast('Schedule deleted');
+    await loadSavedSchedules();
+  } catch(e) { showToast('Error deleting schedule'); }
 }
 
 function scheduleSyncStack() {
