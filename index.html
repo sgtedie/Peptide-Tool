@@ -3595,7 +3595,7 @@ function switchGateTab(tab) {
   document.getElementById('gate-success').textContent = '';
 }
 
-async async function doGateSignIn() {
+async function doGateSignIn() {
   const email = document.getElementById('gate-email').value.trim();
   const pass  = document.getElementById('gate-pass').value;
   const errEl = document.getElementById('gate-error');
