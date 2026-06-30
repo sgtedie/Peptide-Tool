@@ -751,6 +751,16 @@ select {
 .acct-btn.syncing .sync-dot { display: block; background: var(--yellow); }
 .acct-btn.synced .sync-dot  { display: block; background: var(--accent); }
 
+/* ─── LOGIN GATE ─────────────────────────────────── */
+#login-gate {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+#login-gate.hidden { display: none; }
+
 /* ─── AUTH MODAL ─────────────────────────────────── */
 .auth-modal-overlay {
   display: none;
@@ -1004,6 +1014,70 @@ select {
 </style>
 </head>
 <body>
+
+<!-- LOGIN GATE — shown until user is authenticated -->
+<div id="login-gate">
+  <div class="auth-modal" style="max-width:380px; width:100%;">
+    <div style="text-align:center; margin-bottom:18px;">
+      <!-- Vial icon -->
+      <svg width="38" height="58" viewBox="0 0 13 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; color:var(--accent);">
+        <defs><clipPath id="vc2"><rect x="2" y="5" width="9" height="14" rx="3"/></clipPath></defs>
+        <rect x="3" y="0.5" width="7" height="3.2" rx="1.4" fill="currentColor" opacity="0.65"/>
+        <line x1="3" y1="1.8" x2="10" y2="1.8" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
+        <line x1="3" y1="2.8" x2="10" y2="2.8" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
+        <rect x="4" y="3.7" width="5" height="1.5" fill="currentColor" opacity="0.4"/>
+        <rect x="2" y="5" width="9" height="14" rx="3" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="2.6" y="10.5" width="7.8" height="8" fill="currentColor" opacity="0.22" clip-path="url(#vc2)"/>
+        <line x1="2.3" y1="10.5" x2="10.7" y2="10.5" stroke="currentColor" stroke-width="0.9" opacity="0.45"/>
+        <line x1="3.8" y1="6.5" x2="3.8" y2="10" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.28"/>
+        <circle cx="6.5" cy="13.5" r="0.8" fill="currentColor" opacity="0.38"/>
+        <circle cx="8.2" cy="15.5" r="0.55" fill="currentColor" opacity="0.28"/>
+      </svg>
+    </div>
+    <div class="auth-modal-title">Peptide Tools</div>
+    <div class="auth-modal-subtitle">Create a free account to access the calculator, scheduler, and reference library. Your data syncs across all your devices.</div>
+
+    <div class="auth-tab-row">
+      <button class="auth-tab active" id="gate-tab-login" onclick="switchGateTab('login')">Log In</button>
+      <button class="auth-tab" id="gate-tab-signup" onclick="switchGateTab('signup')">Sign Up</button>
+    </div>
+
+    <div id="gate-error" class="auth-error"></div>
+    <div id="gate-success" class="auth-success"></div>
+
+    <!-- LOGIN -->
+    <div id="gate-login-form">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="gate-email" placeholder="you@example.com" autocomplete="email" onkeydown="if(event.key==='Enter')doGateSignIn()">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="gate-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doGateSignIn()">
+      </div>
+      <button class="auth-submit" id="gate-login-btn" onclick="doGateSignIn()">Log In →</button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="gate-signup-form" style="display:none">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="gate-email-su" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="gate-pass-su" placeholder="Min. 6 characters" autocomplete="new-password">
+      </div>
+      <div class="auth-field">
+        <label>Confirm Password</label>
+        <input type="password" id="gate-pass2" placeholder="Re-enter password" onkeydown="if(event.key==='Enter')doGateSignUp()">
+      </div>
+      <button class="auth-submit" id="gate-signup-btn" onclick="doGateSignUp()">Create Free Account →</button>
+    </div>
+
+    <div style="text-align:center; margin-top:14px; font-size:10px; color:var(--text2);">⚠️ For research purposes only — not medical advice</div>
+  </div>
+</div>
 
 <!-- APP HEADER -->
 <div class="app-header">
@@ -3385,9 +3459,11 @@ async function initSupabase() {
 async function onAuthChange(session) {
   currentUser = session ? session.user : null;
   if (currentUser) {
+    document.getElementById('login-gate').classList.add('hidden');
     updateAccountUI(true);
     await loadProfiles();
   } else {
+    document.getElementById('login-gate').classList.remove('hidden');
     currentProfile = null;
     userProfiles   = [];
     updateAccountUI(false);
@@ -3540,6 +3616,56 @@ async function doSignOut() {
 }
 
 // ── UI Helpers ───────────────────────────────────────────
+// ── Gate (login wall) ────────────────────────────────────
+function switchGateTab(tab) {
+  document.getElementById('gate-tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('gate-tab-signup').classList.toggle('active', tab === 'signup');
+  document.getElementById('gate-login-form').style.display  = tab === 'login'  ? 'block' : 'none';
+  document.getElementById('gate-signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('gate-error').style.display   = 'none';
+  document.getElementById('gate-success').style.display = 'none';
+}
+
+async function doGateSignIn() {
+  const email = document.getElementById('gate-email').value.trim();
+  const pass  = document.getElementById('gate-pass').value;
+  if (!email || !pass) { showGateError('Please enter your email and password'); return; }
+  document.getElementById('gate-login-btn').disabled = true;
+  const sb = getSB();
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  document.getElementById('gate-login-btn').disabled = false;
+  if (error) { showGateError(error.message); return; }
+  // onAuthChange handles hiding the gate
+}
+
+async function doGateSignUp() {
+  const email = document.getElementById('gate-email-su').value.trim();
+  const pass  = document.getElementById('gate-pass-su').value;
+  const pass2 = document.getElementById('gate-pass2').value;
+  if (!email || !pass) { showGateError('Please fill in all fields'); return; }
+  if (pass !== pass2)  { showGateError('Passwords do not match'); return; }
+  if (pass.length < 6) { showGateError('Password must be at least 6 characters'); return; }
+  document.getElementById('gate-signup-btn').disabled = true;
+  const sb = getSB();
+  const { error } = await sb.auth.signUp({ email, password: pass });
+  document.getElementById('gate-signup-btn').disabled = false;
+  if (error) { showGateError(error.message); return; }
+  showGateSuccess('✓ Account created! Check your email to confirm, then log in.');
+  switchGateTab('login');
+  document.getElementById('gate-email').value = email;
+}
+
+function showGateError(msg) {
+  const el = document.getElementById('gate-error');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('gate-success').style.display = 'none';
+}
+function showGateSuccess(msg) {
+  const el = document.getElementById('gate-success');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('gate-error').style.display = 'none';
+}
+
 function onAcctBtnClick() {
   if (currentUser) openAccountPanel();
   else openAuthModal('login');
