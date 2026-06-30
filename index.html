@@ -2281,6 +2281,41 @@ function cycleLabel(cycle) {
 
 const TIMING_LABEL = { AM: '☀️ Morning', PM: '🌙 Evening', BOTH: '☀️🌙 Both' };
 
+
+// ── Display Formatting Helpers ────────────────────────────
+function fmtU(units) {
+  if (units === null || units === undefined) return '';
+  return parseFloat(units.toFixed(1));
+}
+
+function fmtDoseDisplay(p) {
+  if (!p) return '';
+  const unit = p.displayUnit || 'mg';
+  const val  = unit === 'mcg' ? (p.dose * 1000) : p.dose;
+  return parseFloat(val.toFixed(unit === 'mcg' ? 0 : 3)) + ' ' + unit;
+}
+
+function fmtFreq(p) {
+  if (!p || !p.cycle) return '';
+  const c = p.cycle;
+  if (c.type === 'always') return 'Daily';
+  if (c.type === 'custom') return c.on + ' on / ' + c.off + ' off';
+  if (c.type === 'weekly' && c.days) {
+    const names = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    return c.days.map(d => names[d]).join(', ');
+  }
+  return c.type || '';
+}
+
+function fmtCycle(p) {
+  if (!p || !p.cycle) return '';
+  const c = p.cycle;
+  if (c.type === 'always') return 'No Off Days';
+  if (c.type === 'custom') return c.on + 'd on, ' + c.off + 'd off';
+  if (c.type === 'weekly') return 'Specific Days';
+  return c.type || '';
+}
+
 function renderPeptideList() {
   const listEl  = document.getElementById('s-peptide-list');
   const configEl = document.getElementById('s-config');
