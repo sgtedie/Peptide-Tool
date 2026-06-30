@@ -1057,7 +1057,20 @@ select {
     </div>
 
     <div style="text-align:center; margin-top:14px; font-size:10px; color:var(--text2);">⚠️ For research purposes only — not medical advice</div>
+
+    <div style="text-align:center; margin-top:18px;">
+      <div style="color:var(--text2);font-size:12px;margin-bottom:10px;">— or —</div>
+      <button onclick="enterDemoMode()" style="width:100%;padding:12px;background:transparent;border:1px dashed var(--border);border-radius:10px;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+        👁 Try Demo — No Account Needed
+      </button>
+      <div style="font-size:10px;color:var(--text2);margin-top:8px;opacity:.7;">Nothing you enter will be saved. Create an account to keep your data.</div>
+    </div>
   </div>
+</div>
+
+<!-- DEMO MODE BANNER -->
+<div id="demo-banner" style="display:none;background:rgba(200,16,46,0.15);border-bottom:1px solid var(--accent);padding:8px 16px;text-align:center;font-size:12px;color:var(--text);position:sticky;top:0;z-index:100;">
+  👁 <strong>Demo Mode</strong> — Data is not saved. <button onclick="exitDemoMode()" style="background:var(--accent);border:none;border-radius:6px;color:#fff;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-left:8px;">Create Account</button>
 </div>
 
 <!-- APP HEADER -->
@@ -3291,6 +3304,41 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 let _supa, currentUser, currentProfile, profiles = [];
 let syncTimer = null;
 
+let demoMode = false;
+
+function _demoClickHandler(e) {
+  const el = e.target.closest('input, select, textarea, button, a, label, [onclick]');
+  if (!el) return;
+  // Allow: tab buttons, demo banner buttons, demo prompt buttons
+  if (el.closest('.tabs') || el.closest('#demo-banner') || el.closest('#demo-prompt') || el.closest('.app-header')) return;
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('demo-prompt').style.display = 'flex';
+}
+
+function enterDemoMode() {
+  demoMode = true;
+  document.getElementById('login-gate').classList.add('hidden');
+  document.getElementById('demo-banner').style.display = 'block';
+  peptides = [];
+  renderPeptideList();
+  document.addEventListener('click', _demoClickHandler, true);
+}
+
+function closeDemoPrompt() {
+  document.getElementById('demo-prompt').style.display = 'none';
+}
+
+function exitDemoMode() {
+  demoMode = false;
+  peptides = [];
+  renderPeptideList();
+  document.getElementById('demo-banner').style.display = 'none';
+  document.getElementById('demo-prompt').style.display = 'none';
+  document.getElementById('login-gate').classList.remove('hidden');
+  document.removeEventListener('click', _demoClickHandler, true);
+}
+
 async function initSupabase() {
   try {
     _supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -3405,6 +3453,7 @@ async function loadStack() {
 
 // ── Saved Schedules ───────────────────────────────────────
 async function saveSchedule() {
+  if (demoMode) { showToast('Create an account to save schedules'); return; }
   if (!currentUser) { showToast('Sign in to save schedules'); return; }
   if (!peptides.length) { showToast('Add peptides first'); return; }
   const name = prompt('Name this schedule (e.g. "Spring Cycle", "Cut Phase"):');
@@ -3686,6 +3735,17 @@ document.addEventListener('DOMContentLoaded', () => initSupabase());
     <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Pick a saved schedule or add to your current stack.</div>
     <div id="pick-sched-list"></div>
     <button onclick="closePicker()" style="width:100%;margin-top:14px;padding:11px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-size:13px;cursor:pointer;">Cancel</button>
+  </div>
+</div>
+
+<!-- DEMO PROMPT MODAL -->
+<div id="demo-prompt" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center;">
+    <div style="font-size:32px;margin-bottom:12px;">🔒</div>
+    <div style="font-size:17px;font-weight:800;margin-bottom:8px;">Create a Free Account</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5;">Sign up to use the calculator, build schedules, and save your peptide stack across devices.</div>
+    <button onclick="exitDemoMode()" style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px;">Create Free Account</button>
+    <button onclick="closeDemoPrompt()" style="width:100%;padding:11px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text2);font-size:13px;cursor:pointer;">Continue Browsing</button>
   </div>
 </div>
 </body>
