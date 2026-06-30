@@ -3261,7 +3261,11 @@ async function loadStack() {
   if (!currentProfile) return;
   try {
     const { data } = await _supa.from('peptide_stacks').select('peptides').eq('profile_id', currentProfile.id).maybeSingle();
-    if (data?.peptides) { peptides = data.peptides; renderPeptideList(); }
+    peptides = data?.peptides || [];
+    renderPeptideList();
+    // Refresh schedule if one is currently displayed
+    const schedOut = document.getElementById('schedule-output');
+    if (schedOut && schedOut.innerHTML.trim()) generateSchedule();
   } catch(e) { console.error('loadStack error:', e); }
 }
 
