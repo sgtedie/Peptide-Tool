@@ -1348,7 +1348,13 @@ select {
     </div>
   </div>
 
-  <div id="s-output"></div>
+  <div id="s-output-wrap" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 4px;">
+      <span id="s-output-label" style="font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;"></span>
+      <button onclick="toggleScheduleOutput()" id="s-output-toggle" style="padding:4px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;">Hide ▲</button>
+    </div>
+    <div id="s-output"></div>
+  </div>
 
 </div>
 
@@ -2469,6 +2475,11 @@ function generateSchedule() {
   }
 
   const outputEl = document.getElementById('s-output');
+  // Show the collapsible wrapper and set label
+  const wrap = document.getElementById('s-output-wrap');
+  if (wrap) { wrap.style.display = 'block'; const collapsed = wrap.dataset.collapsed === '1'; if (collapsed) { wrap.dataset.collapsed = '0'; outputEl.style.display = 'block'; const btn = document.getElementById('s-output-toggle'); if (btn) btn.textContent = 'Hide ▲'; } }
+  const lbl = document.getElementById('s-output-label');
+  if (lbl) lbl.textContent = activeScheduleName ? ('📋 ' + activeScheduleName) : 'Current Schedule';
   // Build plain-text version for email
   const emailBody = buildScheduleText(startDate, viewPeriod);
 
@@ -3280,10 +3291,11 @@ async function loadStack() {
     const { data } = await _supa.from('peptide_stacks').select('peptides').eq('profile_id', currentProfile.id).maybeSingle();
     peptides = data?.peptides || [];
     renderPeptideList();
+    // Clear schedule output and edit mode when switching profiles
+    const sOut = document.getElementById('s-output');
+    if (sOut) sOut.innerHTML = '';
+    activeScheduleId = null; activeScheduleName = null; setEditMode(false);
     await loadSavedSchedules();
-    // Refresh schedule if one is currently displayed
-    const schedOut = document.getElementById('schedule-output');
-    if (schedOut && schedOut.innerHTML.trim()) generateSchedule();
   } catch(e) { console.error('loadStack error:', e); }
 }
 
@@ -3310,7 +3322,7 @@ async function saveSchedule() {
   } catch(e) { console.error(e); showToast('Error saving schedule'); }
 }
 
-async function loadSavedSchedules() {
+async async function loadSavedSchedules() {
   if (!currentUser || !currentProfile) return;
   try {
     const { data, error } = await _supa.from('saved_schedules')
@@ -3335,13 +3347,61 @@ function renderSavedSchedules(list) {
         <div style="font-weight:700;font-size:14px;">${s.name}</div>
         <div style="font-size:11px;color:var(--text2);margin-top:2px;">${s.weeks || 4} weeks · ${(s.schedule_data?.peptides||[]).length} peptide${(s.schedule_data?.peptides||[]).length!==1?'s':''} · ${new Date(s.created_at).toLocaleDateString()}</div>
       </div>
-      <button onclick="loadSchedule('${s.id}')" style="padding:6px 12px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;">Load</button>
+      <button onclick="viewSchedule('${s.id}','${s.name.replace(/'/g,"&#39;")}')" style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;cursor:pointer;">👁 View</button>
+      <button onclick="loadSchedule('${s.id}')" style="padding:6px 12px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:6px;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;">✏️ Edit</button>
       <button onclick="deleteSchedule('${s.id}')" style="padding:6px 10px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:6px;color:#f87171;font-size:12px;cursor:pointer;">✕</button>
     </div>`).join('');
 }
 
 let activeScheduleId = null;
 let activeScheduleName = null;
+
+function toggleScheduleOutput() {
+  const wrap = document.getElementById('s-output-wrap');
+  const out = document.getElementById('s-output');
+  const btn = document.getElementById('s-output-toggle');
+  if (!wrap) return;
+  const collapsed = wrap.dataset.collapsed === '1';
+  if (collapsed) {
+    wrap.dataset.collapsed = '0';
+    out.style.display = 'block';
+    btn.textContent = 'Hide ▲';
+  } else {
+    wrap.dataset.collapsed = '1';
+    out.style.display = 'none';
+    btn.textContent = 'Show ▼';
+  }
+}
+
+async function viewSchedule(id, name) {
+  // View a saved schedule's output WITHOUT replacing the current peptide stack
+  try {
+    const { data, error } = await _supa.from('saved_schedules').select('*').eq('id', id).single();
+    if (error || !data) { showToast('Could not load schedule'); return; }
+    const saved = data.schedule_data || {};
+    const savedPeptides = saved.peptides || [];
+    const savedWeeks = saved.weeks || 4;
+    if (!savedPeptides.length) { showToast('No peptides in this schedule'); return; }
+    // Temporarily swap peptides for rendering, then restore
+    const prevPeptides = peptides;
+    const prevWeeks = viewPeriod;
+    peptides = savedPeptides;
+    viewPeriod = savedWeeks * 7;
+    const startEl = document.getElementById('s-start');
+    const prevStart = startEl ? startEl.value : '';
+    if (startEl && !startEl.value) startEl.value = new Date().toISOString().slice(0,10);
+    generateSchedule();
+    peptides = prevPeptides;
+    viewPeriod = prevWeeks;
+    // Update label
+    const lbl = document.getElementById('s-output-label');
+    if (lbl) lbl.textContent = '👁 Viewing: ' + name;
+    // Make sure wrapper is expanded
+    const wrap = document.getElementById('s-output-wrap');
+    if (wrap) { wrap.style.display = 'block'; wrap.dataset.collapsed = '0'; document.getElementById('s-output').style.display = 'block'; document.getElementById('s-output-toggle').textContent = 'Hide ▲'; }
+    showToast('Viewing: ' + name);
+  } catch(e) { console.error('viewSchedule error:', e); showToast('Error loading schedule'); }
+}
 
 async function loadSchedule(id) {
   try {
