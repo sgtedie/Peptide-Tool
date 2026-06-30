@@ -4383,9 +4383,7 @@ document.addEventListener('DOMContentLoaded', () => initSupabase());
 // ─────────────────────────────────────────────────────────
 // PEPTIDE COMBOBOX
 // ─────────────────────────────────────────────────────────
-let _comboData = []; // flat: [{name, category}]
-let _comboActive = {}; // {id: selectedIndex}
-let _comboCloseTimer = {};
+// _comboData, _comboActive, _comboCloseTimer declared in state block above
 
 function initCombos() {
   _comboData = [];
