@@ -3304,6 +3304,449 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 let _supa, currentUser, currentProfile, profiles = [];
 let syncTimer = null;
 
+
+// ─────────────────────────────────────────────────────────
+// REFERENCE TAB — Search, Browse, Q&A
+// ─────────────────────────────────────────────────────────
+const REF_INFO = {
+  "BPC-157": {
+    goals: ["healing","recovery","gut","injury","tendon","ligament","inflammation","pain","joint","muscle","stomach","bowel"],
+    dose: "200–500 mcg/day (sub-Q or IM); 250–1000 mcg/day oral", timing: "AM or split AM/PM; oral any time with water", cycle: "4–12 weeks",
+    mechanism: "Promotes angiogenesis via VEGFR2 activation, stimulates nitric oxide synthesis, upregulates growth factors (EGF, FGF), and inhibits pro-inflammatory cytokines.",
+    notes: "Derived from a 15-amino-acid sequence of a gastric protective protein. Evidence from rodent studies shows accelerated healing of tendons (Achilles, rotator cuff), gut mucosa, ligaments, and nerves. Crosses the gut-brain axis. Often stacked with TB-500 for synergistic systemic + local healing.",
+    sides: "No confirmed toxicity in animal studies. No approved human trials yet. Theoretical concern: pro-angiogenic effects could theoretically promote tumor growth (unconfirmed).",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=BPC-157+tissue+repair",
+    examine: "https://examine.com/supplements/bpc-157/"
+  },
+  "TB-500 (Thymosin Beta-4)": {
+    goals: ["healing","recovery","injury","flexibility","inflammation","muscle","tissue","hair","cardiac","systemic"],
+    dose: "2–2.5 mg 2x/week (loading, 4–6 wks); 1–2 mg/week (maintenance)", timing: "Any time, sub-Q", cycle: "4–6 weeks loading + ongoing maintenance",
+    mechanism: "Upregulates actin-binding protein, promotes cell migration and differentiation, stimulates blood vessel formation (angiogenesis), and modulates inflammatory cytokines (IL-6, TNF-α).",
+    notes: "Systemic healing peptide with high bioavailability. Unlike BPC-157 (local), TB-500 acts body-wide. Strong evidence in animal models for cardiac repair, hair regrowth, and wound healing. Ideal stack with BPC-157 for injury protocols.",
+    sides: "Well tolerated in studies. Rare: transient fatigue, mild flu-like symptoms at high doses. Potential concern with malignancy (as with most angiogenic peptides, unconfirmed).",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=thymosin+beta-4+wound+healing",
+    examine: "https://examine.com/supplements/tb-500/"
+  },
+  "CJC-1295 (with DAC)": {
+    goals: ["growth hormone","GH","muscle","fat loss","sleep","recovery","anti-aging","body composition"],
+    dose: "1–2 mg once weekly (sub-Q)", timing: "Any day, consistent weekly timing preferred", cycle: "8–12 weeks on, 4 weeks off",
+    mechanism: "GHRH analog with Drug Affinity Complex (DAC) that binds albumin, extending half-life to 6–8 days. Causes prolonged, sustained GH pulse rather than sharp peak.",
+    notes: "Produces a sustained 'GH bleed' across the week. Best combined with a GHRP (Ipamorelin, GHRP-2) for amplified pulse. Improves body composition, sleep quality, and collagen synthesis. One of the most popular GH peptides due to once-weekly dosing.",
+    sides: "Water retention (common, especially early), tingling/numbness (peripheral), fatigue, hunger increase, potential insulin resistance at high doses.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=CJC-1295+growth+hormone",
+    examine: ""
+  },
+  "CJC-1295 (no DAC)": {
+    goals: ["growth hormone","GH","muscle","fat loss","sleep","recovery","pulsatile"],
+    dose: "100–300 mcg per injection (2–3x daily)", timing: "AM fasted, pre-workout, and pre-sleep for maximum GH pulse", cycle: "8–12 weeks",
+    mechanism: "Short-acting GHRH analog without albumin binding. Half-life ~30 min. Produces a sharp, natural-mimicking GH pulse when stacked with a GHRP.",
+    notes: "More physiological GH pattern vs. CJC with DAC. Typically stacked 1:1 with Ipamorelin. Pre-sleep dosing captures the largest natural GH release window.",
+    sides: "Flushing, mild water retention, headache. Generally well tolerated.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=modified+GRF+1-29+growth+hormone",
+    examine: ""
+  },
+  "Ipamorelin": {
+    goals: ["growth hormone","GH","muscle","fat loss","sleep","anti-aging","clean","selective"],
+    dose: "200–300 mcg per injection", timing: "Pre-sleep is optimal; also AM fasted and/or pre-workout", cycle: "8–12 weeks on, 4 weeks off",
+    mechanism: "Selective ghrelin receptor agonist (GHS-R1a). Triggers a clean GH pulse with minimal impact on cortisol, prolactin, or ACTH — unlike GHRP-2/6.",
+    notes: "Considered the 'cleanest' GHRP. Ideal for beginners or those sensitive to cortisol increases. Pairs synergistically with CJC-1295 (no DAC) for a 2–3x amplified GH pulse. Improves sleep depth, recovery, and body composition.",
+    sides: "Mild hunger, transient headache, flushing at high doses. Minimal hormonal side effects.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=ipamorelin+growth+hormone+secretion",
+    examine: "https://examine.com/supplements/ipamorelin/"
+  },
+  "GHRP-2": {
+    goals: ["growth hormone","GH","appetite","muscle","fat loss","bulking"],
+    dose: "100–300 mcg per injection, 2–3x/day", timing: "AM, pre-workout, pre-sleep (fasted preferred for GH effect)", cycle: "8–12 weeks",
+    mechanism: "Potent ghrelin mimetic (GHS-R1a). Strongly stimulates GH release and significantly increases appetite via central ghrelin pathways. Also slightly elevates cortisol and prolactin.",
+    notes: "One of the most potent GHRPs. Dramatically increases appetite — ideal during bulking. Provides the strongest GH release of the common GHRPs. Best paired with CJC-1295 or Sermorelin.",
+    sides: "Significant hunger increase, water retention, cortisol/prolactin elevation (transient), potential insulin resistance.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=GHRP-2+growth+hormone+release",
+    examine: ""
+  },
+  "GHRP-6": {
+    goals: ["growth hormone","GH","appetite","muscle","gut","bulking","hunger"],
+    dose: "100–300 mcg per injection, 2–3x/day", timing: "Fasted: AM, pre-workout, pre-sleep", cycle: "8–12 weeks",
+    mechanism: "First-generation GHRP. Ghrelin mimetic with the strongest appetite-stimulating effect of all GHRPs. GH pulse is strong but slightly less than GHRP-2.",
+    notes: "Historically the most studied GHRP. Also shown to have gastric protective properties (like BPC-157). Excellent for bulking due to intense hunger stimulation.",
+    sides: "Very strong appetite increase, cortisol/prolactin elevation, water retention.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=GHRP-6+growth+hormone",
+    examine: ""
+  },
+  "Sermorelin": {
+    goals: ["growth hormone","GH","sleep","anti-aging","recovery","gentle","natural"],
+    dose: "200–500 mcg/night", timing: "30–60 min before sleep (critical — aligns with natural GH surge)", cycle: "3–6 months (longer cycles appropriate due to gentle profile)",
+    mechanism: "Synthetic analog of endogenous GHRH (first 29 amino acids). Stimulates pituitary to produce and release GH through natural feedback mechanisms, unlike direct GH administration.",
+    notes: "Among the most clinically studied GH peptides. FDA-approved (now off-market). Gentle, safe for longer-term use. Preserves pituitary function (unlike exogenous HGH). Excellent for anti-aging, sleep, and baseline GH optimization.",
+    sides: "Injection site redness, flushing, headache, dizziness. Rare: transient hypoglycemia.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=sermorelin+growth+hormone+therapy",
+    examine: ""
+  },
+  "Tesamorelin": {
+    goals: ["visceral fat","fat loss","metabolic","GH","HIV","abdomen","liver fat","cognitive"],
+    dose: "1–2 mg/day sub-Q", timing: "AM fasted preferred", cycle: "3–6 months; monitor IGF-1",
+    mechanism: "Stabilized GHRH analog. FDA-approved for HIV-associated lipodystrophy. Reduces visceral adipose tissue by stimulating GH axis, improving lipolysis and lipid metabolism.",
+    notes: "Only GHRH analog with FDA approval for visceral fat reduction. Clinical trials show 15–20% reduction in visceral fat over 26 weeks. Also shows cognitive benefits (memory, processing speed) in studies on older adults.",
+    sides: "Joint/muscle pain, water retention, peripheral edema, glucose elevation, potential IGF-1 elevations.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=tesamorelin+visceral+fat",
+    examine: "https://examine.com/supplements/tesamorelin/"
+  },
+  "IGF-1 LR3": {
+    goals: ["muscle","hypertrophy","fat loss","recovery","growth","nutrient partitioning"],
+    dose: "20–100 mcg/day (start low)", timing: "Post-workout, injected into worked muscle (IM) or sub-Q", cycle: "4–6 weeks MAX — rotate off; receptor downregulation occurs",
+    mechanism: "Long-acting analog of IGF-1 (Arg3 substitution prevents IGFBP-3 binding). Activates mTOR pathway for muscle protein synthesis, inhibits apoptosis, and enhances glucose uptake in muscle.",
+    notes: "Extremely potent anabolic peptide. Should not be used without thorough research. Risk of hypoglycemia with improper dosing. Potential for organ growth (visceral, jaw) with chronic use. Short cycles mandatory.",
+    sides: "⚠️ Hypoglycemia (can be severe), jaw/organ enlargement with chronic use, joint pain, potential malignancy risk at high doses.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=IGF-1+LR3+muscle+anabolic",
+    examine: "https://examine.com/supplements/igf-1/"
+  },
+  "Semaglutide (GLP-1S)": {
+    goals: ["weight loss","fat loss","appetite","blood sugar","metabolic","GLP-1","insulin","cardiovascular"],
+    dose: "Start 0.25 mg/week → titrate every 4 weeks → max 2.4 mg/week (weight loss)", timing: "Once weekly, same day each week", cycle: "Ongoing; re-evaluate every 3–6 months",
+    mechanism: "GLP-1 receptor agonist. Slows gastric emptying, suppresses appetite via hypothalamic GLP-1R, enhances glucose-dependent insulin secretion, and reduces glucagon.",
+    notes: "Same mechanism as Ozempic (2 mg) and Wegovy (2.4 mg). Clinical trials (STEP program): average 15–17% body weight reduction over 68 weeks. Also improves HbA1c, BP, and cardiovascular outcomes. Slow titration critical to minimize GI side effects.",
+    sides: "Nausea (most common, especially early), vomiting, constipation, diarrhea, pancreatitis risk (rare), gastroparesis with long-term use, gallbladder disease.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=semaglutide+weight+loss+STEP",
+    examine: "https://examine.com/supplements/semaglutide/"
+  },
+  "Tirzepatide (GLP-1T)": {
+    goals: ["weight loss","fat loss","blood sugar","metabolic","GLP-1","GIP","appetite","insulin"],
+    dose: "Start 2.5 mg/week → titrate monthly → max 15 mg/week", timing: "Once weekly", cycle: "Ongoing",
+    mechanism: "Dual GIP/GLP-1 receptor agonist (twincretin). GIP activation adds additive effects on insulin secretion, fat metabolism, and adipocyte function beyond GLP-1 alone.",
+    notes: "SURMOUNT-1 trial: average 22.5% body weight loss at 72 weeks — superior to semaglutide. Also FDA-approved as Mounjaro (T2D) and Zepbound (obesity). Stronger weight loss outcomes than semaglutide head-to-head.",
+    sides: "Similar to semaglutide: nausea, diarrhea, constipation, vomiting. Generally comparable tolerability.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=tirzepatide+weight+loss+SURMOUNT",
+    examine: "https://examine.com/supplements/tirzepatide/"
+  },
+  "PT-141 (Bremelanotide)": {
+    goals: ["libido","sexual function","arousal","erectile dysfunction","female desire","HSDD"],
+    dose: "0.5–2 mg sub-Q or intranasal, 45–60 min before activity", timing: "As needed only (not daily)", cycle: "As needed; max 1–2x/week",
+    mechanism: "Melanocortin 3/4 receptor agonist acting centrally (hypothalamus) to increase sexual desire — independent of vascular mechanisms (unlike PDE5 inhibitors).",
+    notes: "FDA-approved as Vyleesi for hypoactive sexual desire disorder (HSDD) in premenopausal women. Also effective in men (ED, low libido). Works even when PDE5 inhibitors fail. Unlike Viagra, works through the CNS not blood vessels.",
+    sides: "Nausea (most common — 40% of users), flushing, transient BP elevation (20–30 min), hyperpigmentation with repeated use, headache.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=PT-141+bremelanotide+sexual+function",
+    examine: ""
+  },
+  "Epithalon": {
+    goals: ["longevity","anti-aging","sleep","telomere","immune","cancer prevention","pineal"],
+    dose: "5–10 mg/day for 10–20 days", timing: "Pre-sleep preferred (pineal/melatonin synergy)", cycle: "2–3 courses/year",
+    mechanism: "Tetrapeptide (Ala-Glu-Asp-Gly) derived from pineal gland. Activates telomerase enzyme, potentially elongating telomeres. Also normalizes melatonin secretion and exhibits antioxidant properties.",
+    notes: "Most extensively studied in Russian anti-aging research (Khavinson et al.). Animal studies show 25–40% lifespan extension in some models. Normalizes circadian rhythm and improves sleep architecture. Evidence base largely from Russian research (limited Western trials).",
+    sides: "Extremely well tolerated. No significant toxicity reported. Rare: mild fatigue or vivid dreams.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=epithalamin+epithalon+telomerase+aging",
+    examine: ""
+  },
+  "Semax": {
+    goals: ["cognitive","focus","memory","anxiety","neuroprotection","brain","BDNF","stroke"],
+    dose: "300–600 mcg/day intranasal (3–6 drops per nostril)", timing: "AM or pre-cognitive task", cycle: "2–4 weeks on, 1–2 weeks off",
+    mechanism: "ACTH(4-10) analog. Increases BDNF (brain-derived neurotrophic factor) and NGF. Modulates dopamine and serotonin systems. Strong neuroprotective and neuroplasticity effects.",
+    notes: "Approved drug in Russia for stroke recovery and cognitive dysfunction. One of the most evidence-backed cognitive peptides. Improves working memory, focus, and mood. BDNF increase is comparable to exercise. May benefit ADHD, depression, and anxiety.",
+    sides: "Mild anxiety or irritability at high doses, insomnia if taken late in day. Rare headache.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=semax+BDNF+cognitive",
+    examine: ""
+  },
+  "Selank": {
+    goals: ["anxiety","stress","mood","cognitive","calm","sleep","GABA","anti-anxiety"],
+    dose: "250–750 mcg/day intranasal", timing: "AM or as needed for acute anxiety", cycle: "2–4 weeks",
+    mechanism: "Tuftsin analog that modulates GABAergic system and serotonin metabolism. Increases IL-6, stabilizes enkephalins (endogenous opioids). Anti-anxiety without sedation or dependence.",
+    notes: "Approved in Russia for anxiety disorders. Often described as 'anxiolytic without the fog.' Does not cause dependence or withdrawal (unlike benzodiazepines). May improve memory and cognitive clarity simultaneously with anxiety reduction.",
+    sides: "Very well tolerated. Rare: mild fatigue, slight drowsiness at high doses.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=selank+anxiety+clinical",
+    examine: ""
+  },
+  "DSIP": {
+    goals: ["sleep","insomnia","stress","cortisol","recovery","delta sleep"],
+    dose: "100–200 mcg sub-Q before sleep (some use 25–50 mcg low-dose nasal)", timing: "30–60 min before bed", cycle: "As needed; short courses",
+    mechanism: "Delta Sleep-Inducing Peptide. Modulates noradrenergic and dopaminergic activity. Increases delta-wave (deep) sleep and reduces ACTH/cortisol. May act on endogenous opioid systems.",
+    notes: "Originally discovered in rabbit CSF during sleep. Improves sleep architecture without altering sleep stage proportions negatively. Also shown to normalize cortisol, reduce withdrawal symptoms, and exhibit mild anti-tumor effects in some studies.",
+    sides: "Drowsiness (expected). Mild and transient at therapeutic doses.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=DSIP+delta+sleep+inducing+peptide",
+    examine: ""
+  },
+  "GHK-Cu (Copper Peptide)": {
+    goals: ["skin","anti-aging","hair","wound healing","collagen","longevity","inflammation","DNA repair"],
+    dose: "1–2 mg/day sub-Q for systemic; topical at 0.5–2% concentration", timing: "Any time", cycle: "8–12 weeks",
+    mechanism: "Copper tripeptide (Gly-His-Lys-Cu²⁺). Activates over 4,000 genes involved in tissue remodeling. Stimulates collagen, elastin, and glycosaminoglycan synthesis. Anti-inflammatory via NF-κB modulation.",
+    notes: "One of the most well-researched anti-aging peptides. Naturally present in plasma, declines with age. Loren Pickart's research (UCSF) spans 50+ years. Evidence for wound healing, hair follicle stimulation, and skin rejuvenation. Also shows anti-cancer and anti-anxiety properties in some studies.",
+    sides: "Very safe at therapeutic doses. Copper excess possible with very high, prolonged systemic use (rare).",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=GHK-Cu+copper+peptide+wound+aging",
+    examine: ""
+  },
+  "AOD 9604": {
+    goals: ["fat loss","weight","metabolic","lipolysis","anti-obesity"],
+    dose: "300–500 mcg/day sub-Q (AM fasted best)", timing: "AM before food, ideally with empty stomach", cycle: "12 weeks",
+    mechanism: "C-terminal fragment of HGH (residues 176–191). Mimics lipolytic effect of HGH by binding fat cell receptors, stimulating fat breakdown without affecting IGF-1 or causing carcinogenic signaling.",
+    notes: "Failed Phase III trials as a commercial obesity drug (Metabolic Pharmaceuticals) but widely used in research/peptide community. No impact on insulin or IGF-1 — considered safer than full HGH for fat loss. Results modest without caloric deficit.",
+    sides: "Generally very well tolerated. Rare: mild headache, flushing, transient fatigue.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=AOD-9604+lipolysis+obesity",
+    examine: ""
+  },
+  "Thymosin Alpha-1 (TA1)": {
+    goals: ["immune","infection","cancer","immune modulation","antiviral","hepatitis","chronic illness"],
+    dose: "1.6 mg sub-Q 2x/week (standard clinical dose)", timing: "Any time", cycle: "6–12 weeks",
+    mechanism: "Naturally occurring thymic peptide (28 amino acids). Enhances T-cell maturation, NK cell activity, and dendritic cell function. Modulates Th1/Th2 balance. Approved in 35+ countries.",
+    notes: "FDA-approved investigational drug (Zadaxin). Used clinically for hepatitis B/C, cancer, and sepsis. Showed benefit in COVID-19 trials. Among the best-studied immunomodulatory peptides. Not for general immune enhancement — most beneficial in immune deficiency or chronic infection.",
+    sides: "Extremely well tolerated. Occasional mild injection site reaction. Rare flu-like symptoms.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=thymosin+alpha-1+immune+modulation",
+    examine: ""
+  },
+  "VIP (Vasoactive Intestinal Peptide)": {
+    goals: ["inflammation","immune","CIRS","mold","gut","lung","autoimmune","neuroprotection"],
+    dose: "50 mcg intranasal 4x/day (Shoemaker protocol)", timing: "Evenly spaced throughout day", cycle: "As directed by practitioner",
+    mechanism: "28-amino-acid neuropeptide. Anti-inflammatory via cAMP elevation, reduces cytokines (IL-6, TNF-α), promotes regulatory T-cells, and is neuroprotective. Also regulates circadian rhythms.",
+    notes: "Key peptide in Dr. Ritchie Shoemaker's CIRS (Chronic Inflammatory Response Syndrome) protocol for mold illness. Must be preceded by cholestyramine protocol. Requires specialized compounding. Not for general use without CIRS diagnosis.",
+    sides: "Flushing, dizziness, headache, rare cardiac effects (vasodilation). Must not be used if MARCONS still present.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=vasoactive+intestinal+peptide+inflammation",
+    examine: ""
+  },
+  "Melanotan II (MT-2)": {
+    goals: ["tanning","libido","erectile dysfunction","fat loss","sexual","melanin"],
+    dose: "0.25–1 mg sub-Q (start low to assess tolerance)", timing: "Before UV exposure for tanning; 30–45 min before for sexual effects", cycle: "As needed; avoid chronic daily use",
+    mechanism: "Non-selective melanocortin receptor agonist (MC1R for tanning, MC3/4R for sexual function and appetite suppression). More potent than PT-141 for tanning.",
+    notes: "Controversial compound — not FDA approved. Does cause lasting skin darkening. Risk of mole changes. Some users report appetite suppression and fat loss. PT-141 (bremelanotide) is the purified sexual function derivative.",
+    sides: "⚠️ Nausea (common), flushing, spontaneous erections, mole darkening/new moles, elevated BP. Higher risk profile than PT-141.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=melanotan+II+clinical",
+    examine: ""
+  },
+  "Kisspeptin-10": {
+    goals: ["testosterone","LH","FSH","fertility","libido","hormonal","hypogonadism"],
+    dose: "1–10 nmol/kg IV or sub-Q (clinical setting); 50–100 mcg sub-Q common off-label", timing: "Pulsatile dosing preferred; 2–3x daily", cycle: "Short cycles; effect wanes with continuous exposure",
+    mechanism: "Endogenous neuropeptide that activates GnRH neurons, driving pulsatile LH and FSH release. Master regulator of the HPG axis. Declines with age and in hypogonadism.",
+    notes: "Growing interest for male hormonal optimization, particularly for men with low LH/FSH (hypogonadotropic hypogonadism). Potential use for fertility and natural testosterone recovery post-TRT. Limited human trial data but strong mechanistic basis.",
+    sides: "Mild nausea, flushing. Tachyphylaxis (reduced effect) with continuous use — pulsatile dosing required.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=kisspeptin+LH+testosterone+men",
+    examine: ""
+  },
+  "Oxytocin": {
+    goals: ["bonding","trust","anxiety","social","mood","libido","autism","PTSD"],
+    dose: "10–24 IU intranasal (40 IU used in some trials)", timing: "30–60 min before social interaction or intimacy", cycle: "As needed; avoid daily long-term use",
+    mechanism: "Endogenous hypothalamic hormone released during bonding, touch, and orgasm. Acts on oxytocin receptors in amygdala (reduces fear), nucleus accumbens (reward), and brainstem.",
+    notes: "Used in clinical trials for autism spectrum disorder, PTSD, social anxiety, and postpartum depression. Improves trust, empathy, and emotional recognition. May reduce food intake and cortisol. Intranasal delivery is convenient but brain penetration variable.",
+    sides: "Headache, uterine contractions (avoid in pregnancy unless obstetric), potential to increase in-group/out-group bias ('tend and befriend' effect).",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=oxytocin+nasal+spray+social+anxiety",
+    examine: "https://examine.com/supplements/oxytocin/"
+  },
+  "Epithalon": {
+    goals: ["longevity","anti-aging","sleep","telomere","immune","cancer prevention","pineal"],
+    dose: "5–10 mg/day for 10–20 days", timing: "Pre-sleep preferred (pineal/melatonin synergy)", cycle: "2–3 courses/year",
+    mechanism: "Tetrapeptide (Ala-Glu-Asp-Gly) derived from pineal gland. Activates telomerase enzyme, potentially elongating telomeres. Also normalizes melatonin secretion and exhibits antioxidant properties.",
+    notes: "Most extensively studied in Russian anti-aging research (Khavinson et al.). Animal studies show 25–40% lifespan extension in some models. Normalizes circadian rhythm and improves sleep architecture.",
+    sides: "Extremely well tolerated. No significant toxicity reported.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=epithalamin+epithalon+telomerase+aging",
+    examine: ""
+  },
+  "NAD+": {
+    goals: ["energy","anti-aging","longevity","mitochondria","cellular repair","addiction","neuroprotection"],
+    dose: "250–1000 mg/day sub-Q; 500–1000 mg IV (clinic); 1–3g oral NMN/NR (precursors)", timing: "AM", cycle: "Ongoing; periodic IV infusions or daily sub-Q",
+    mechanism: "Essential coenzyme for sirtuins (SIRT1-7), PARP DNA repair enzymes, and the electron transport chain. Declines ~50% by age 60. Drives mitochondrial biogenesis and cellular energy production.",
+    notes: "David Sinclair (Harvard) research popularized NAD+. Sub-Q injection more bioavailable than oral NAD+. IV infusions provide the highest acute levels. Precursors (NMN, NR) are oral alternatives. Strong evidence for addiction recovery (NAD+ IV clinics) and neuroprotection.",
+    sides: "Flushing, nausea (especially IV — rate-dependent), chest tightness (IV, benign). Sub-Q is much better tolerated.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=NAD+aging+mitochondria+sirtuin",
+    examine: "https://examine.com/supplements/nicotinamide-adenine-dinucleotide/"
+  },
+  "MOTS-C": {
+    goals: ["metabolic","fat loss","insulin","energy","longevity","exercise","mitochondria"],
+    dose: "5–10 mg/week sub-Q (divided 2–3x)", timing: "AM or pre-exercise", cycle: "8–12 weeks",
+    mechanism: "Mitochondrial-derived peptide encoded in mitochondrial 12S rRNA. Activates AMPK, improves insulin sensitivity, regulates folate cycle and metabolic homeostasis. Declines with age.",
+    notes: "Discovered at USC (Lee et al., 2015). MOTS-c levels decline with age and insulin resistance. Exercise increases circulating MOTS-c. May explain some metabolic benefits of exercise independent of caloric expenditure.",
+    sides: "Generally well tolerated in studies. Limited human data. Rare mild injection site reaction.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=MOTS-c+mitochondria+insulin+AMPK",
+    examine: ""
+  },
+  "KPV": {
+    goals: ["gut","inflammation","IBD","Crohn's","colitis","wound","skin","anti-inflammatory"],
+    dose: "500 mcg–1 mg/day oral or sub-Q; topical creams available", timing: "With meals for gut; any time for systemic", cycle: "4–8 weeks",
+    mechanism: "C-terminal tripeptide of alpha-MSH (Lys-Pro-Val). Potent anti-inflammatory via MC1R activation. Inhibits NF-κB, reduces TNF-α and IL-6. Also directly modulates gut epithelial tight junctions.",
+    notes: "Highly stable tripeptide. Oral bioavailability is surprisingly good for a peptide (unusual). Strong evidence for IBD, Crohn's, and ulcerative colitis in mouse models. Also used topically for rosacea, eczema, and wound healing.",
+    sides: "Extremely well tolerated. No significant reported side effects.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=KPV+alpha-MSH+inflammation+colitis",
+    examine: ""
+  },
+  "Noopept": {
+    goals: ["cognitive","memory","focus","neuroprotection","brain","BDNF","NGF","Alzheimer's"],
+    dose: "10–30 mg/day intranasal or sublingual; 10–20 mg oral (less potent)", timing: "AM (and optionally midday)", cycle: "1–3 months on, 1 month off",
+    mechanism: "Dipeptide analog of piracetam. 1000x more potent by weight. Increases BDNF and NGF in the hippocampus. Modulates AMPA and NMDA receptors. Enhances acetylcholine transmission.",
+    notes: "Developed in Russia in the 1990s. Well-studied nootropic with strong mechanistic basis. Intranasal delivery bypasses blood-brain barrier for superior effect vs. oral. May be protective against Alzheimer's pathology (reduced amyloid-beta in animal studies).",
+    sides: "Headache (choline deficiency — add choline source), irritability, brain fog at high doses. Rare anxiety.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=noopept+cognitive+BDNF+neuroprotection",
+    examine: "https://examine.com/supplements/noopept/"
+  },
+  "Semax": {
+    goals: ["cognitive","focus","memory","anxiety","neuroprotection","brain","BDNF","stroke"],
+    dose: "300–600 mcg/day intranasal", timing: "AM or pre-cognitive task", cycle: "2–4 weeks on, 1–2 weeks off",
+    mechanism: "ACTH(4-10) analog. Increases BDNF and NGF. Modulates dopamine and serotonin systems. Strong neuroprotective and neuroplasticity effects.",
+    notes: "Approved drug in Russia for stroke recovery and cognitive dysfunction. Improves working memory, focus, and mood. BDNF increase comparable to aerobic exercise.",
+    sides: "Mild anxiety or irritability at high doses, insomnia if taken late. Rare headache.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=semax+BDNF+cognitive",
+    examine: ""
+  },
+  "Selank": {
+    goals: ["anxiety","stress","mood","cognitive","calm","sleep","GABA","anti-anxiety"],
+    dose: "250–750 mcg/day intranasal", timing: "AM or as needed for acute anxiety", cycle: "2–4 weeks",
+    mechanism: "Tuftsin analog. Modulates GABAergic system and serotonin metabolism. Anti-anxiety without sedation or dependence.",
+    notes: "Approved in Russia for anxiety disorders. Does not cause dependence or withdrawal. May improve cognitive clarity simultaneously.",
+    sides: "Very well tolerated. Rare mild fatigue.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=selank+anxiety+clinical",
+    examine: ""
+  },
+  "Thymosin Alpha-1 (TA1)": {
+    goals: ["immune","infection","cancer","immune modulation","antiviral","hepatitis","chronic illness"],
+    dose: "1.6 mg sub-Q 2x/week", timing: "Any time", cycle: "6–12 weeks",
+    mechanism: "Naturally occurring thymic peptide. Enhances T-cell maturation, NK cell activity, and dendritic cell function.",
+    notes: "FDA-approved investigational drug (Zadaxin). Used clinically for hepatitis B/C, cancer, and sepsis. Showed benefit in COVID-19 trials.",
+    sides: "Extremely well tolerated. Occasional mild injection site reaction.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=thymosin+alpha-1+immune+modulation",
+    examine: ""
+  },
+  "GHK-Cu (Copper Peptide)": {
+    goals: ["skin","anti-aging","hair","wound healing","collagen","longevity","inflammation","DNA repair"],
+    dose: "1–2 mg/day sub-Q; topical 0.5–2%", timing: "Any time", cycle: "8–12 weeks",
+    mechanism: "Copper tripeptide activating 4,000+ genes involved in tissue remodeling. Stimulates collagen, elastin, glycosaminoglycan synthesis. Anti-inflammatory via NF-κB modulation.",
+    notes: "50+ years of Loren Pickart research (UCSF). Naturally present in plasma, declines with age. Evidence for wound healing, hair follicle stimulation, and skin rejuvenation.",
+    sides: "Very safe. Copper excess only at very high prolonged systemic doses (rare).",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=GHK-Cu+copper+peptide+wound+aging",
+    examine: ""
+  },
+  "AOD 9604": {
+    goals: ["fat loss","weight","metabolic","lipolysis","anti-obesity"],
+    dose: "300–500 mcg/day sub-Q (AM fasted)", timing: "AM before food", cycle: "12 weeks",
+    mechanism: "C-terminal HGH fragment (176–191). Mimics lipolytic effect of HGH without IGF-1 effects or carcinogenic signaling.",
+    notes: "Failed Phase III commercial trials but widely researched. No impact on insulin or IGF-1.",
+    sides: "Generally very well tolerated. Rare mild headache.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=AOD-9604+lipolysis+obesity",
+    examine: ""
+  },
+  "PT-141 (Bremelanotide)": {
+    goals: ["libido","sexual function","arousal","erectile dysfunction","female desire","HSDD"],
+    dose: "0.5–2 mg sub-Q or intranasal, 45–60 min before activity", timing: "As needed; max 1–2x/week", cycle: "As needed",
+    mechanism: "MC3/4 receptor agonist acting centrally (hypothalamus). Independent of vascular mechanisms unlike PDE5 inhibitors.",
+    notes: "FDA-approved as Vyleesi for HSDD. Also effective in men. Works even when PDE5 inhibitors fail.",
+    sides: "Nausea (40% of users), flushing, transient BP elevation, hyperpigmentation with repeated use.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=PT-141+bremelanotide+sexual+function",
+    examine: ""
+  }
+};
+
+function refSearch() {
+  const q = document.getElementById('ref-search').value.trim().toLowerCase();
+  const resultsEl = document.getElementById('ref-search-results');
+  if (!q) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; return; }
+
+  const matches = [];
+  for (const [name, data] of Object.entries(REF_INFO)) {
+    const searchText = (data.goals.join(' ') + ' ' + name + ' ' + (data.notes||'')).toLowerCase();
+    if (searchText.includes(q)) matches.push(name);
+  }
+
+  if (!matches.length) {
+    resultsEl.style.display = 'flex';
+    resultsEl.innerHTML = '<div style="color:var(--text2);font-size:13px;">No matches found.</div>';
+    return;
+  }
+
+  resultsEl.style.display = 'flex';
+  resultsEl.innerHTML = matches.map(name =>
+    `<button onclick="showRefCard('${name.replace(/'/g,"&#39;")}')" style="padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:12px;cursor:pointer;">${name}</button>`
+  ).join('');
+}
+
+function onRefDropdown() {
+  const name = document.getElementById('ref-peptide').value;
+  if (name) showRefCard(name);
+}
+
+function showRefCard(name) {
+  const info = REF_INFO[name];
+  document.getElementById('ref-empty').style.display = 'none';
+  const card = document.getElementById('ref-card');
+  card.style.display = 'block';
+
+  if (!info) {
+    card.innerHTML = `<div class="card"><div class="card-title">${name}</div><p style="color:var(--text2);font-size:13px;">Detailed reference data for this peptide is coming soon.</p></div>`;
+    return;
+  }
+
+  card.innerHTML = `
+    <div class="card">
+      <div class="card-title" style="font-size:17px;">${name}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;">
+        <div style="background:var(--surface2);border-radius:8px;padding:10px;">
+          <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Dose</div>
+          <div style="font-size:13px;font-weight:600;">${info.dose}</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px;">
+          <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Timing</div>
+          <div style="font-size:13px;font-weight:600;">${info.timing}</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px;grid-column:1/-1;">
+          <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Typical Cycle</div>
+          <div style="font-size:13px;font-weight:600;">${info.cycle}</div>
+        </div>
+      </div>
+      ${info.mechanism ? `<div style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:10px;margin-bottom:10px;">
+        <div style="font-size:11px;color:#93c5fd;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">⚙️ Mechanism of Action</div>
+        <div style="font-size:13px;line-height:1.6;">${info.mechanism}</div>
+      </div>` : ''}
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">📋 Research Notes</div>
+        <div style="font-size:13px;line-height:1.6;">${info.notes}</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:10px;margin-bottom:10px;">
+        <div style="font-size:11px;color:#fca5a5;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">⚠️ Side Effects</div>
+        <div style="font-size:13px;line-height:1.6;">${info.sides}</div>
+      </div>
+      <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+        ${info.goals.slice(0,6).map(g=>`<span style="padding:4px 10px;background:var(--surface2);border-radius:20px;font-size:11px;color:var(--text2);">${g}</span>`).join('')}
+      </div>
+      ${(info.pubmed || info.examine) ? `<div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${info.pubmed ? `<a href="${info.pubmed}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;text-decoration:none;font-weight:600;">🔬 PubMed Studies</a>` : ''}
+        ${info.examine ? `<a href="${info.examine}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;text-decoration:none;font-weight:600;">📊 Examine.com</a>` : ''}
+      </div>` : ''}
+    </div>`;
+}
+
+function answerQuestion() {
+  const q = document.getElementById('qa-input').value.trim().toLowerCase();
+  const ansEl = document.getElementById('qa-answer');
+  if (!q) { ansEl.style.display = 'none'; return; }
+
+  // Find best matching peptide
+  let bestMatch = null, bestScore = 0;
+  for (const [name, data] of Object.entries(REF_INFO)) {
+    let score = 0;
+    const nameLower = name.toLowerCase();
+    if (q.includes(nameLower) || nameLower.split(' ').some(w => w.length > 3 && q.includes(w))) score += 10;
+    data.goals.forEach(g => { if (q.includes(g)) score += 2; });
+    if (score > bestScore) { bestScore = score; bestMatch = name; }
+  }
+
+  // Determine what aspect they're asking about
+  const isDosingQ = /dose|dosing|how much|mg|mcg|amount|inject/i.test(q);
+  const isSideQ = /side effect|risk|danger|safe|harm/i.test(q);
+  const isTimingQ = /when|timing|morning|night|sleep|pre|post/i.test(q);
+  const isCycleQ = /cycle|how long|duration|weeks/i.test(q);
+  const isStackQ = /stack|combine|with|together/i.test(q);
+
+  ansEl.style.display = 'block';
+
+  if (!bestMatch || bestScore < 2) {
+    ansEl.innerHTML = `<strong>Q: ${document.getElementById('qa-input').value}</strong><br><br>Try asking about a specific peptide (e.g. "What are the side effects of BPC-157?" or "How do I dose Ipamorelin?"). You can also search by symptom above.`;
+    return;
+  }
+
+  const info = REF_INFO[bestMatch];
+  let answer = `<strong>${bestMatch}</strong><br><br>`;
+
+  if (isDosingQ) answer += `<strong>Dose:</strong> ${info.dose}<br><strong>Timing:</strong> ${info.timing}<br>`;
+  else if (isSideQ) answer += `<strong>Side Effects:</strong> ${info.sides}<br>`;
+  else if (isTimingQ) answer += `<strong>Timing:</strong> ${info.timing}<br>`;
+  else if (isCycleQ) answer += `<strong>Cycle:</strong> ${info.cycle}<br>`;
+  else if (isStackQ) answer += `<strong>Notes:</strong> ${info.notes}<br>`;
+  else answer += `<strong>Dose:</strong> ${info.dose}<br><strong>Timing:</strong> ${info.timing}<br><strong>Cycle:</strong> ${info.cycle}<br><br><strong>Notes:</strong> ${info.notes}<br>`;
+
+  answer += `<br><em style="color:var(--text2);font-size:11px;">⚠️ Research purposes only — not medical advice.</em>`;
+  ansEl.innerHTML = answer;
+}
+// ─────────────────────────────────────────────────────────
 let demoMode = false;
 
 function _demoClickHandler(e) {
