@@ -1580,6 +1580,8 @@ const PEPTIDE_CATEGORIES = [
       { name: "LL-37",                             vial: 5   },
       { name: "KPV",                               vial: 5   },
       { name: "ARA-290",                           vial: 8   },
+      { name: "Cartalax",                          vial: 20  },
+      { name: "Ovagen",                            vial: 20  },
     ]
   },
   {
@@ -1623,6 +1625,7 @@ const PEPTIDE_CATEGORIES = [
       { name: "MOTS-C / Humanin Blend",            vial: 5   },
       { name: "SS-31 (Elamipretide)",              vial: 50  },
       { name: "Thymulin",                          vial: 10  },
+      { name: "SNAP-8",                            vial: 5   },
     ]
   },
   {
@@ -1642,6 +1645,7 @@ const PEPTIDE_CATEGORIES = [
       { name: "P-21",                              vial: 25  },
       { name: "Noopept",                           vial: 10  },
       { name: "9-Me-BC",                           vial: 50  },
+      { name: "Dihexa",                             vial: 10  },
     ]
   },
   {
@@ -3570,6 +3574,214 @@ const REF_INFO = {
     pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=noopept+cognitive+BDNF+neuroprotection",
     examine: "https://examine.com/supplements/noopept/"
   },
+  "PE-22-28": {
+    goals: ["depression","antidepressant","mood","serotonin","BDNF","cognitive","anxiety","resilience"],
+    dose: "200–500 mcg/day sub-Q or intranasal (experimental)", timing: "AM preferred", cycle: "2–4 weeks; limited human data",
+    mechanism: "Truncated analog of spadin (a sortilin-derived peptide). Acts as a TREK-1 (potassium channel) antagonist, increasing neuronal excitability and serotonin availability. Also promotes BDNF/TrkB signaling — the same pathway as ketamine.",
+    notes: "Sold by Luvion Bio and specialty vendors. One of the most exciting emerging antidepressants in preclinical research. PE-22-28 showed antidepressant effects comparable to fluoxetine (Prozac) in mouse models — with faster onset. TREK-1 blockade increases serotonin release in prefrontal cortex. Also shows neuroplasticity-promoting effects similar to ketamine but without dissociative properties. Very limited human data — strictly research stage.",
+    sides: "Unknown in humans. No significant toxicity in animal models. Potential: restlessness, insomnia (serotonergic stimulation).",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=PE-22-28+TREK-1+antidepressant",
+    examine: ""
+  },
+  "Dihexa": {
+    goals: ["cognitive","memory","Alzheimer's","dementia","neuroprotection","brain","learning","neurogenesis"],
+    dose: "5–15 mg/day oral, sublingual, or liquid spray; 1–5 mg intranasal (more potent route)", timing: "AM", cycle: "4–8 weeks on, 4 weeks off",
+    mechanism: "Angiotensin IV analog that activates hepatocyte growth factor (HGF) / MET receptor pathway. Promotes synaptogenesis (new synaptic connections) and neurotrophic signaling. Estimated 1 million times more potent than BDNF at crossing the blood-brain barrier.",
+    notes: "Developed at Washington State University (Joseph Harding lab). Among the most potent cognitive-enhancing peptides discovered. Dramatically improved spatial learning in aged rats with cognitive impairment. Available as oral capsules, liquid spray, or sub-Q from GoAlpha Labs and others. Considered a potential breakthrough for Alzheimer's and age-related cognitive decline. Extremely limited human data.",
+    sides: "Largely unknown in humans. Animal studies show good tolerability. Theoretical risk: pro-growth signaling could theoretically promote certain cancers (unconfirmed). Rare reports of irritability.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=Dihexa+cognitive+synaptogenesis+HGF",
+    examine: ""
+  },
+  "Cartalax": {
+    goals: ["cartilage","joint","connective tissue","collagen","anti-aging","articular","repair"],
+    dose: "0.5–1 mg/day sub-Q", timing: "Any time", cycle: "10–20 days on, 3–6 months off (Russian peptide bioregulator protocol)",
+    mechanism: "Tripeptide cartilage bioregulator (Ala-Glu-Asp) from Khavinson peptide bioregulator series. Stimulates chondrocyte proliferation and extracellular matrix production in cartilage tissue.",
+    notes: "Part of the Russian peptide bioregulator family developed by Vladimir Khavinson. Tissue-specific peptide designed to stimulate regeneration of cartilage and connective tissue. Available from GoAlpha Labs and similar vendors. Often stacked with BPC-157 and TB-500 for comprehensive joint/tissue recovery protocols.",
+    sides: "Extremely well tolerated in studies. No significant adverse effects reported.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=Khavinson+peptide+cartilage+bioregulator",
+    examine: ""
+  },
+  "Ovagen": {
+    goals: ["liver","hepatoprotective","anti-aging","immune","gut","longevity","peptide bioregulator"],
+    dose: "0.5–1 mg/day sub-Q or oral", timing: "Any time", cycle: "10 days, 2–3x/year",
+    mechanism: "Khavinson peptide bioregulator derived from liver tissue. Restores normal gene expression in hepatocytes. Stimulates liver cell regeneration and normalizes metabolic enzyme activity.",
+    notes: "Part of the Russian peptide bioregulator system. Sold by GoAlpha Labs. Used to support liver health, regeneration after alcohol/drug stress, and as part of comprehensive anti-aging protocols. Strongest evidence base in Russian clinical literature.",
+    sides: "Very well tolerated. No significant adverse effects reported.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=Khavinson+peptide+liver+bioregulator+ovagen",
+    examine: ""
+  },
+  "SNAP-8": {
+    goals: ["skin","anti-aging","wrinkles","cosmetic","expression lines","botox alternative","collagen"],
+    dose: "10–100 mcg/day topical (0.001–0.01% cream); 1–2 mg sub-Q systemic (research)", timing: "AM and/or PM topical application", cycle: "Ongoing topical; 8–12 weeks sub-Q",
+    mechanism: "Octapeptide analog of the SNAP-25 N-terminal sequence. Competitively inhibits SNARE complex formation, reducing acetylcholine release at neuromuscular junctions — same target as botulinum toxin but without permanent paralysis.",
+    notes: "Often called 'Botox in a bottle' in cosmetic research. Available from GoAlpha Labs and Penguin Peptides. Topical studies show 30–35% reduction in wrinkle depth vs. placebo. Palmitoylated form (Pal-SNAP-8) improves skin penetration. Much milder effect than Botox but no injection required.",
+    sides: "Topical: minimal — occasional mild irritation. Systemic: very limited data.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=SNAP-8+peptide+wrinkle+cosmetic",
+    examine: ""
+  },
+  "Orexin A": {
+    goals: ["wakefulness","energy","narcolepsy","cognition","motivation","fatigue","sleep deprivation"],
+    dose: "100–500 mcg intranasal (research dosing)", timing: "AM or when alertness needed; avoid PM use", cycle: "As needed",
+    mechanism: "Endogenous neuropeptide produced in lateral hypothalamus. Activates OX1R and OX2R receptors promoting wakefulness, arousal, and appetite. Deficiency causes narcolepsy.",
+    notes: "Naturally produced in the brain; declines with age and in narcolepsy. Intranasal delivery allows direct brain access. Research shows restoration of alertness after sleep deprivation equal to stimulant drugs — without peripheral stimulant effects (no cardiovascular stress). Emerging interest for shift workers, military, and age-related fatigue.",
+    sides: "Potential: insomnia if dosed too late, elevated appetite, rare headache. Limited human data.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=orexin+A+intranasal+wakefulness",
+    examine: ""
+  },
+  "9-Me-BC": {
+    goals: ["cognitive","dopamine","neuroprotection","Parkinson's","motivation","focus","neurogenesis"],
+    dose: "5–15 mg/day oral or sublingual", timing: "AM (dopaminergic — avoid PM)", cycle: "4–8 weeks on, 4 weeks off",
+    mechanism: "9-Methyl-β-carboline. Inhibits MAO-A/B enzymes (increasing dopamine, serotonin, norepinephrine). Also promotes neurogenesis, increases BDNF, and is neuroprotective against dopaminergic neuron loss.",
+    notes: "One of the most potent dopaminergic nootropics in research. Endogenous β-carboline found in roasted coffee. Research shows neuronal growth and protection in cell models. Potential for Parkinson's disease research. Available from specialty vendors. Caution: MAO inhibition means dietary tyramine restriction may apply at higher doses.",
+    sides: "⚠️ MAO inhibition — may interact with serotonergic drugs (SSRI, MDMA). Dietary tyramine caution at higher doses. Potential: headache, anxiety, insomnia.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=9-methyl-beta-carboline+neuroprotection+dopamine",
+    examine: ""
+  },
+  "P-21": {
+    goals: ["cognitive","BDNF","neurogenesis","memory","Alzheimer's","brain","learning"],
+    dose: "50–100 mcg/day intranasal or sub-Q", timing: "AM", cycle: "4–8 weeks",
+    mechanism: "Synthetic peptide derived from CNTF (Ciliary Neurotrophic Factor). Activates BDNF/TrkB signaling without the side effects of full CNTF (no weight loss, no pro-inflammatory effects). Promotes hippocampal neurogenesis.",
+    notes: "Designed as a 'cleaner' CNTF analog. Preclinical studies show significant memory improvement and hippocampal neurogenesis in aged and cognitively impaired animals. Often stacked with Dihexa for synergistic cognitive enhancement. Very limited human data.",
+    sides: "Not well characterized in humans. Animal studies suggest good tolerability.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=P21+CNTF+BDNF+neurogenesis+cognitive",
+    examine: ""
+  },
+  "Retatrutide (RETA)": {
+    goals: ["weight loss","fat loss","metabolic","GLP-1","GIP","glucagon","triple agonist","blood sugar"],
+    dose: "Start 0.5 mg/week → titrate to 4–12 mg/week over months", timing: "Once weekly", cycle: "Ongoing; clinical trials ran 36–48 weeks",
+    mechanism: "Triple incretin agonist: GLP-1R + GIPR + GcgR (glucagon receptor). The glucagon receptor activation adds thermogenesis and liver fat reduction on top of GLP-1/GIP weight loss effects.",
+    notes: "Phase II results (NEJM, 2023): average 24.2% body weight loss at 48 weeks at highest dose — the most weight loss ever observed in a non-surgical intervention. Known as GLP3-RT in research peptide community. Eli Lilly Phase III trials ongoing. Also reduces liver fat, improves lipids, and blood pressure.",
+    sides: "Similar to semaglutide/tirzepatide: nausea, vomiting, diarrhea, constipation. Possibly stronger GI effects at high doses.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=retatrutide+weight+loss+phase+II",
+    examine: ""
+  },
+  "Cagrilintide (GLP-1C)": {
+    goals: ["weight loss","appetite","metabolic","amylin","satiety","GLP-1","fat loss"],
+    dose: "0.16–4.5 mg/week sub-Q (titration)", timing: "Once weekly", cycle: "Ongoing",
+    mechanism: "Long-acting amylin analog. Amylin is co-secreted with insulin and signals satiety via the area postrema. Synergistic with GLP-1 agonists (cagrilintide + semaglutide = CagriSema, showing 25%+ weight loss).",
+    notes: "Novo Nordisk compound in Phase III (CagriSema combination). Most powerful when combined with semaglutide. Amylin pathway is complementary and additive to GLP-1 — different brain regions targeted.",
+    sides: "Nausea, vomiting (similar to GLP-1 agonists), injection site reactions.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=cagrilintide+amylin+weight+loss",
+    examine: ""
+  },
+  "Hexarelin": {
+    goals: ["growth hormone","GH","cardiac","muscle","fat loss","cardioprotection"],
+    dose: "100–200 mcg per injection, 2–3x/day", timing: "AM, pre-workout, pre-sleep (fasted)", cycle: "4–8 weeks",
+    mechanism: "Most potent GHRP developed. Synthetic hexapeptide GH secretagogue. Also acts directly on cardiac tissue via CD36 receptors — unique cardioprotective effect independent of GH.",
+    notes: "Produces the strongest GH pulse of all GHRPs. Significant cardiac research interest — shown to improve cardiac function post-MI in animal models. GH desensitization occurs faster than with Ipamorelin, necessitating cycling.",
+    sides: "Strong cortisol/prolactin elevation, significant water retention, possible desensitization within 4–6 weeks.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=hexarelin+growth+hormone+cardiac",
+    examine: ""
+  },
+  "LL-37": {
+    goals: ["immune","antimicrobial","infection","wound healing","inflammation","gut","lung","cancer"],
+    dose: "0.5–1 mg/day sub-Q or topical", timing: "Any time", cycle: "2–4 weeks",
+    mechanism: "Only known human cathelicidin antimicrobial peptide. Disrupts bacterial membranes, neutralizes endotoxins (LPS), modulates innate immune response, and promotes wound healing via EGFR activation.",
+    notes: "Endogenous antimicrobial peptide produced by epithelial cells and neutrophils. Declines with vitamin D deficiency. Research interest for antibiotic-resistant infections, gut dysbiosis, wound healing, and cancer (pro- and anti-tumor effects depending on context). Also being studied for COVID-19.",
+    sides: "Injection site irritation. Possible pro-inflammatory at high doses. Limited systemic safety data.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=LL-37+cathelicidin+antimicrobial+wound",
+    examine: ""
+  },
+  "ARA-290": {
+    goals: ["neuropathy","nerve pain","inflammation","immune","sarcoidosis","diabetic neuropathy","erythropoietin"],
+    dose: "4 mg/day sub-Q (clinical trial dose)", timing: "Daily", cycle: "4–12 weeks",
+    mechanism: "Non-erythropoietic EPO analog. Activates the innate repair receptor (IRR/EPOR/CD131 complex) without stimulating red blood cell production. Reduces neuro-inflammation and promotes nerve repair.",
+    notes: "Developed by Araim Pharmaceuticals. Phase II trials showed significant reduction in small fiber neuropathy pain (sarcoidosis-associated). One of the most promising peptides for neuropathic pain without opioid mechanisms. Also reduces inflammation and promotes tissue repair.",
+    sides: "Generally well tolerated in trials. Injection site reactions. Rare: transient fatigue.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=ARA-290+neuropathy+erythropoietin+innate+repair",
+    examine: ""
+  },
+  "Cortexin": {
+    goals: ["cognitive","neuroprotection","stroke","brain injury","memory","Alzheimer's","dementia","focus"],
+    dose: "10 mg/day IM injection", timing: "Any time, 10-day course", cycle: "10 days, 2–3x/year",
+    mechanism: "Polypeptide extract from bovine cerebral cortex. Contains mixture of neuropeptides, amino acids, and growth factors that stimulate neuroplasticity, reduce neuroinflammation, and normalize neurotransmitter balance.",
+    notes: "Approved drug in Russia (Cortexin®) for stroke, TBI, encephalopathy, and cognitive decline. One of the most widely prescribed neuroprotective agents in Eastern Europe. Promotes BDNF and NGF expression, improves cerebral blood flow, and reduces excitotoxicity. 30+ years of clinical use.",
+    sides: "Extremely well tolerated. Rare: injection site discomfort. Bovine-derived (theoretical BSE risk, though processing minimizes this).",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=cortexin+neuroprotection+stroke+cognitive",
+    examine: ""
+  },
+  "Thymulin": {
+    goals: ["immune","thymus","T-cell","autoimmune","inflammation","anti-aging","zinc"],
+    dose: "0.5–1 mg/week sub-Q", timing: "Any time", cycle: "4–8 weeks",
+    mechanism: "Thymic nonapeptide (Zn²⁺-dependent). Promotes T-cell maturation and differentiation, balances Th1/Th2 response, and reduces pro-inflammatory cytokines. Activity requires zinc cofactor.",
+    notes: "Naturally produced by thymic epithelial cells; declines dramatically with age (thymic involution). Part of Khavinson's anti-aging peptide research. May help reverse age-related immune decline. Often used alongside Thymosin Alpha-1 for comprehensive immune protocols.",
+    sides: "Very well tolerated. Ensure adequate zinc status for activity.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=thymulin+T-cell+immune+aging",
+    examine: ""
+  },
+  "FOXO4-DRI": {
+    goals: ["senescence","longevity","anti-aging","senolytic","cancer","cellular","zombie cells"],
+    dose: "1–5 mg/kg per administration (animal studies); human dose not established", timing: "Periodic (weekly or monthly in research)", cycle: "Short courses, periodic",
+    mechanism: "D-amino acid retro-inverso peptide that disrupts the FOXO4-p53 interaction in senescent cells, triggering apoptosis (programmed death) specifically in senescent 'zombie' cells without affecting healthy cells.",
+    notes: "Developed by Peter de Keizer (Utrecht University). Published in Cell (2017): dramatically restored fitness, fur density, and kidney function in fast-aged mice. One of the first senolytics to show high selectivity for senescent cells. Still early-stage research — human dosing not established. High potential for longevity medicine.",
+    sides: "Unknown in humans. Theoretical: could affect wound healing (senescent cells have roles in healing). High cost and limited availability.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=FOXO4-DRI+senescent+cells+senolytic",
+    examine: ""
+  },
+  "SS-31 (Elamipretide)": {
+    goals: ["mitochondria","heart failure","aging","energy","kidney","cardioprotection","longevity"],
+    dose: "0.25–0.5 mg/kg/day sub-Q (clinical trials)", timing: "Daily", cycle: "As directed; trials ran 4–12 weeks",
+    mechanism: "Mitochondria-targeted tetrapeptide. Concentrates in inner mitochondrial membrane, stabilizes cardiolipin, reduces mitochondrial ROS, and improves electron transport chain efficiency.",
+    notes: "Developed by Hazel Szeto (Cornell). Phase II trials for heart failure with preserved ejection fraction (HFpEF) show improved exercise capacity. Also being studied for age-related mitochondrial dysfunction. Considered one of the most promising mitochondrial-targeting therapeutics.",
+    sides: "Generally well tolerated. Injection site reactions. Rare: transient dizziness.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=SS-31+elamipretide+mitochondria+heart",
+    examine: ""
+  },
+  "Humanin": {
+    goals: ["longevity","neuroprotection","Alzheimer's","metabolic","mitochondria","anti-aging","insulin","cardiac"],
+    dose: "2–10 mg/week sub-Q (research dosing)", timing: "Any time", cycle: "8–12 weeks",
+    mechanism: "Mitochondrial-derived peptide (encoded in 16S rRNA). Activates STAT3, reduces apoptosis in neurons, improves insulin sensitivity, and reduces Alzheimer's-related amyloid-beta toxicity.",
+    notes: "Discovered in 2001 (Nishimoto et al.) as a suppressor of Alzheimer's neuronal death. Naturally declines with age. IGF-1 suppresses humanin — caloric restriction increases it. Strong protective effects in animal models of Alzheimer's, diabetes, and cardiovascular disease. Often paired with MOTS-C.",
+    sides: "Very limited human data. Animal studies show good tolerability. Rare: mild fatigue.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=humanin+mitochondria+Alzheimer+neuroprotection",
+    examine: ""
+  },
+  "MIF-1": {
+    goals: ["mood","dopamine","cognitive","depression","Parkinson's","alertness","dopaminergic"],
+    dose: "0.5–2 mg/day intranasal or sub-Q", timing: "AM", cycle: "2–4 weeks",
+    mechanism: "Pro-Leu-Gly-NH2 (melanocyte-stimulating hormone release-inhibiting factor). Modulates dopaminergic neurotransmission, potentiates dopamine receptor sensitivity, and reduces oxidative stress in dopaminergic neurons.",
+    notes: "Endogenous tripeptide derived from oxytocin. Studied in Russia for depression and Parkinson's. Potentiates dopamine signaling without direct agonism — considered a dopamine sensitizer. Stack with Semax for comprehensive cognitive/mood support.",
+    sides: "Very well tolerated. Mild: transient mood elevation, rare insomnia.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=MIF-1+dopamine+neuropeptide+Parkinson",
+    examine: ""
+  },
+  "N-Acetyl Semax": {
+    goals: ["cognitive","focus","memory","BDNF","neuroprotection","anxiety","mood","brain"],
+    dose: "200–600 mcg/day intranasal", timing: "AM or pre-task", cycle: "2–4 weeks on, 1 week off",
+    mechanism: "Acetylated form of Semax. N-acetylation increases stability and half-life. Same mechanism as Semax: ACTH(4-10) analog, BDNF/NGF upregulation, dopamine/serotonin modulation.",
+    notes: "More stable and potent than standard Semax. Often considered the superior form for cognitive enhancement. Amidate version (N-Acetyl Semax Amidate / Adamax) has even longer half-life. Popular vendor: Luvion Bio, Chameleon Peptides.",
+    sides: "Similar to Semax: mild anxiety at high doses, insomnia if taken late.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=semax+acetyl+BDNF+cognitive",
+    examine: ""
+  },
+  "N-Acetyl Selank": {
+    goals: ["anxiety","stress","mood","calm","cognitive","GABA","anti-anxiety"],
+    dose: "200–600 mcg/day intranasal", timing: "AM or as needed", cycle: "2–4 weeks",
+    mechanism: "Acetylated form of Selank with enhanced stability. Tuftsin analog modulating GABAergic and serotonin systems.",
+    notes: "Enhanced stability vs. standard Selank. Adalank (N-Acetyl Selank Amidate) is even more stable. Available from Luvion Bio, Chameleon Peptides. Excellent anxiolytic without sedation or dependence.",
+    sides: "Very well tolerated. Rare mild fatigue.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=selank+analog+anxiety+GABA",
+    examine: ""
+  },
+  "Epithalon": {
+    goals: ["longevity","anti-aging","sleep","telomere","immune","cancer prevention","pineal"],
+    dose: "5–10 mg/day for 10–20 days", timing: "Pre-sleep preferred", cycle: "2–3 courses/year",
+    mechanism: "Tetrapeptide activating telomerase. Normalizes pineal/melatonin secretion.",
+    notes: "Russian anti-aging research (Khavinson). Animal studies show 25–40% lifespan extension. Normalizes circadian rhythm.",
+    sides: "Extremely well tolerated.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=epithalamin+epithalon+telomerase",
+    examine: ""
+  },
+  "5-Amino-1MQ": {
+    goals: ["fat loss","metabolic","NAD+","mitochondria","energy","obesity","longevity"],
+    dose: "50–200 mg/day oral (capsule)", timing: "AM", cycle: "8–12 weeks",
+    mechanism: "Small molecule NNMT (nicotinamide N-methyltransferase) inhibitor. NNMT converts NAD+ precursors to inactive metabolites. Blocking NNMT raises intracellular NAD+ levels in fat cells, increasing energy expenditure and reducing fat cell size.",
+    notes: "Originally developed at Vanderbilt University. Shown to reduce fat mass in obese mice without caloric restriction. Considered a potential obesity treatment via metabolic reprogramming of adipose tissue. Available in capsule form from several research vendors.",
+    sides: "Limited human data. Generally well tolerated in animal studies. Potential: altered NAD+ metabolism effects.",
+    pubmed: "https://pubmed.ncbi.nlm.nih.gov/?term=5-amino-1MQ+NNMT+fat+metabolism",
+    examine: ""
+  }
+};
   "Semax": {
     goals: ["cognitive","focus","memory","anxiety","neuroprotection","brain","BDNF","stroke"],
     dose: "300–600 mcg/day intranasal", timing: "AM or pre-cognitive task", cycle: "2–4 weeks on, 1–2 weeks off",
